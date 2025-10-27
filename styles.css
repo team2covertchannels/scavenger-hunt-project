@@ -25,6 +25,10 @@ body{
   padding: 10px;
 }
 
+.tab.active{
+  background-color: #CCC;
+}
+
 .tab:hover{
   background-color: #AAA;
 }
