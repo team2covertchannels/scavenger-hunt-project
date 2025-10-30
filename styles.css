@@ -50,7 +50,7 @@ body{
 }
 
 .container.header {
-  display: files;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 0.875rem;
