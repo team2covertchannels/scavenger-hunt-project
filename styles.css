@@ -92,5 +92,5 @@ header {
 }
 
 .header .navigation li.hover{
-  border-bottom: 2x solid crimson;
+  border-bottom: 2px solid crimson;
 }
