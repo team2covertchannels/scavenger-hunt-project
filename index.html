@@ -127,8 +127,45 @@
         </section>
       </p>
   </div>    
+    <!-- MUSIC PAGE -->
+    <div id="music" data-tab-content style="padding: 20px;">
+      <h1 style="text-align:center;">Music — Audio Covert Channel</h1>
+      
+      <p>Welcome to Jack’s Audio Covert Channel.  
+      This channel hides data inside an ultrasonic audio signal (19 kHz & 19.5 kHz).  
+      Uploading audio files here allows participants to exchange covert messages that are inaudible to humans.</p>
+
+      <h2>How It Works</h2>
+      <ul>
+        <li>Your portion of the message is converted into bits.</li>
+        <li>Each bit is represented as a high-frequency tone:
+          <ul>
+            <li><strong>19,000 Hz</strong> = 0</li>
+            <li><strong>19,500 Hz</strong> = 1</li>
+          </ul>
+        </li>
+        <li>The audio file also contains a shared CRC code used to match the three channels together.</li>
+      </ul>
+
+      <h2>Download Encoder/Decoder</h2>
+      <p>
+        <a href="jack_encoder.py" download>Download Encoder Script</a><br>
+        <a href="jack_decoder.py" download>Download Decoder Script</a>
+      </p>
+
+      <h2>Demo Audio File</h2>
+      <audio controls>
+        <source src="jack_demo.wav" type="audio/wav">
+        Your browser does not support the audio element.
+      </audio>
+
+      <p>Upload or listen to ultrasonic encoded audio here to decode your portion of the message.</p>
+    </div>
 
     <!-- ENTER TITLE FOR NEXT SECTION OF CODE -->
+    
+</div> <!-- closes .tab-content -->
+
 </body>
 </html>
 
