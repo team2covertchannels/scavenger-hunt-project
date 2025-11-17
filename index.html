@@ -170,6 +170,7 @@
   <div style="margin-bottom: 20px; text-align: center;">
     <input type="text" id="postTitle" placeholder="Post Title" style="width: 60%; padding: 10px; margin-bottom: 10px;"><br>
     <textarea id="postContent" placeholder="Write about your hobby..." rows="5" style="width: 60%; padding: 10px;"></textarea><br>
+    <input type="file" id="postImage" accept="image/*" style="margin-top: 10px;"><br>
     <button onclick="addPost()" style="margin-top: 10px; padding: 10px 20px;">Add Post</button>
   </div>
 
@@ -183,6 +184,8 @@
   function addPost() {
     const title = document.getElementById('postTitle').value.trim();
     const content = document.getElementById('postContent').value.trim();
+    const imageInput = document.getElementById('postImage');
+    const imageFile = imageInput.files[0];
 
     if (title && content) {
       const postSection = document.createElement('section');
@@ -198,11 +201,21 @@
       postSection.appendChild(postTitle);
       postSection.appendChild(postText);
 
+      if (imageFile) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(imageFile);
+        img.alt = "User uploaded hobby image";
+        img.style.maxWidth = "100%";
+        img.style.marginTop = "10px";
+        postSection.appendChild(img);
+      }
+
       document.getElementById('postsContainer').appendChild(postSection);
 
       // Clear input fields
       document.getElementById('postTitle').value = '';
       document.getElementById('postContent').value = '';
+      imageInput.value = '';
     } else {
       alert('Please enter both a title and content for your post.');
     }
