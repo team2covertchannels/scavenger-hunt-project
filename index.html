@@ -181,6 +181,12 @@
 </div>
 
 <script>
+  // Load posts from localStorage on page load
+  window.onload = function () {
+    const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
+    savedPosts.forEach(post => renderPost(post.title, post.content, post.image));
+  };
+
   function addPost() {
     const title = document.getElementById('postTitle').value.trim();
     const content = document.getElementById('postContent').value.trim();
@@ -188,33 +194,18 @@
     const imageFile = imageInput.files[0];
 
     if (title && content) {
-      const postSection = document.createElement('section');
-      postSection.style.borderBottom = '1px solid #ccc';
-      postSection.style.padding = '10px 0';
-
-      const postTitle = document.createElement('h2');
-      postTitle.textContent = title;
-
-      const postText = document.createElement('p');
-      postText.textContent = content;
-
-      postSection.appendChild(postTitle);
-      postSection.appendChild(postText);
+      let imageData = null;
 
       if (imageFile) {
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(imageFile);
-        img.alt = "User uploaded hobby image";
-        img.style.width = "300px";
-        img.style.height = "auto";
-        img.style.borderRadius = "8px";
-        img.style.marginTop = "10px";
-        img.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-        img.style.marginTop = "10px";
-        postSection.appendChild(img);
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          imageData = e.target.result;
+          saveAndRenderPost(title, content, imageData);
+        };
+        reader.readAsDataURL(imageFile);
+      } else {
+        saveAndRenderPost(title, content, null);
       }
-
-      document.getElementById('postsContainer').appendChild(postSection);
 
       // Clear input fields
       document.getElementById('postTitle').value = '';
@@ -222,6 +213,54 @@
       imageInput.value = '';
     } else {
       alert('Please enter both a title and content for your post.');
+    }
+  }
+
+  function saveAndRenderPost(title, content, imageData) {
+    const newPost = { title, content, image: imageData };
+    const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
+
+    // Add new post to the beginning
+    savedPosts.unshift(newPost);
+    localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
+
+    renderPost(title, content, imageData, true);
+  }
+
+  function renderPost(title, content, imageData, insertAtTop = false) {
+    const postSection = document.createElement('section');
+    postSection.style.borderBottom = '1px solid #ccc';
+    postSection.style.padding = '10px 0';
+
+    const postTitle = document.createElement('h2');
+    postTitle.textContent = title;
+
+    const postText = document.createElement('p');
+    postText.textContent = content;
+
+    postSection.appendChild(postTitle);
+    postSection.appendChild(postText);
+
+    if (imageData) {
+      const img = document.createElement('img');
+      img.src = imageData;
+      img.alt = "User uploaded hobby image";
+      img.style.width = "300px";
+      img.style.height = "auto";
+      img.style.borderRadius = "8px";
+      img.style.marginTop = "10px";
+      img.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+      img.style.display = "block";
+      img.style.marginLeft = "auto";
+      img.style.marginRight = "auto";
+      postSection.appendChild(img);
+    }
+
+    const container = document.getElementById('postsContainer');
+    if (insertAtTop) {
+      container.insertBefore(postSection, container.firstChild);
+    } else {
+      container.appendChild(postSection);
     }
   }
 </script>
