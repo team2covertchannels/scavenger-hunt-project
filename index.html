@@ -179,12 +179,11 @@
     <!-- New posts will appear here -->
   </div>
 </div>
-
 <script>
   // Load posts from localStorage on page load
   window.onload = function () {
     const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-    savedPosts.forEach(post => renderPost(post.title, post.content, post.image));
+    savedPosts.forEach(post => renderPost(post, false));
   };
 
   function addPost() {
@@ -194,17 +193,18 @@
     const imageFile = imageInput.files[0];
 
     if (title && content) {
+      const timestamp = new Date().toLocaleString();
       let imageData = null;
 
       if (imageFile) {
         const reader = new FileReader();
         reader.onload = function (e) {
           imageData = e.target.result;
-          saveAndRenderPost(title, content, imageData);
+          saveAndRenderPost({ title, content, image: imageData, timestamp });
         };
         reader.readAsDataURL(imageFile);
       } else {
-        saveAndRenderPost(title, content, null);
+        saveAndRenderPost({ title, content, image: null, timestamp });
       }
 
       // Clear input fields
@@ -216,34 +216,46 @@
     }
   }
 
-  function saveAndRenderPost(title, content, imageData) {
-    const newPost = { title, content, image: imageData };
+  function saveAndRenderPost(post) {
     const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-
-    // Add new post to the beginning
-    savedPosts.unshift(newPost);
+    savedPosts.unshift(post);
     localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
-
-    renderPost(title, content, imageData, true);
+    renderPost(post, true);
   }
 
-  function renderPost(title, content, imageData, insertAtTop = false) {
+  function renderPost(post, insertAtTop = false) {
     const postSection = document.createElement('section');
     postSection.style.borderBottom = '1px solid #ccc';
     postSection.style.padding = '10px 0';
 
     const postTitle = document.createElement('h2');
-    postTitle.textContent = title;
+    postTitle.textContent = post.title;
 
     const postText = document.createElement('p');
-    postText.textContent = content;
+    postText.textContent = post.content;
+
+    const postTime = document.createElement('small');
+    postTime.textContent = `Posted on ${post.timestamp}`;
+    postTime.style.display = 'block';
+    postTime.style.marginTop = '5px';
+    postTime.style.color = '#666';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete Post';
+    deleteBtn.style.marginTop = '10px';
+    deleteBtn.style.padding = '5px 10px';
+    deleteBtn.onclick = function () {
+      postSection.remove();
+      deletePost(post);
+    };
 
     postSection.appendChild(postTitle);
     postSection.appendChild(postText);
+    postSection.appendChild(postTime);
 
-    if (imageData) {
+    if (post.image) {
       const img = document.createElement('img');
-      img.src = imageData;
+      img.src = post.image;
       img.alt = "User uploaded hobby image";
       img.style.width = "300px";
       img.style.height = "auto";
@@ -256,12 +268,24 @@
       postSection.appendChild(img);
     }
 
+    postSection.appendChild(deleteBtn);
+
     const container = document.getElementById('postsContainer');
     if (insertAtTop) {
       container.insertBefore(postSection, container.firstChild);
     } else {
       container.appendChild(postSection);
     }
+  }
+
+  function deletePost(targetPost) {
+    let savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
+    savedPosts = savedPosts.filter(post =>
+      !(post.title === targetPost.title &&
+        post.content === targetPost.content &&
+        post.timestamp === targetPost.timestamp)
+    );
+    localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
   }
 </script>
 
