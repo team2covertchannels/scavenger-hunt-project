@@ -163,23 +163,55 @@
     </div>
 
     <!-- Hobbies -->
-  <div id="hobbies" data-tab-content style="padding: 20px;">
+  Got it! Here's a streamlined version of your "Hobbies" tab that treats all posts as general hobby entries—no predefined categories like Hiking or Cooking. It keeps the blog-style format and lets users add posts with a title and content.
+
+🧶 General Hobby Sharing Section
+<div id="hobbies" data-tab-content style="padding: 20px;">
   <h1 style="text-align:center;">Share Your Favorite Hobbies</h1>
-    <section>
-      <h2>Hiking</h2>
-      <p>Share your coolest spots to hike, as well as any interesting pictures.</p>
-    </section>
 
-    <section>
-      <h2>Cooking</h2>
-      <p>Share your most delicious meals you've made.</p>
-    </section>
+  <!-- Post Input Form -->
+  <div style="margin-bottom: 20px; text-align: center;">
+    <input type="text" id="postTitle" placeholder="Post Title" style="width: 60%; padding: 10px; margin-bottom: 10px;"><br>
+    <textarea id="postContent" placeholder="Write about your hobby..." rows="5" style="width: 60%; padding: 10px;"></textarea><br>
+    <button onclick="addPost()" style="margin-top: 10px; padding: 10px 20px;">Add Post</button>
+  </div>
 
-    <section>
-      <h2>Pets</h2>
-      <p>Share your adorable pets and ask questions!</p>
-    </section>
-  </div>    
+  <!-- Posts Container -->
+  <div id="postsContainer">
+    <!-- New posts will appear here -->
+  </div>
+</div>
+
+<script>
+  function addPost() {
+    const title = document.getElementById('postTitle').value.trim();
+    const content = document.getElementById('postContent').value.trim();
+
+    if (title && content) {
+      const postSection = document.createElement('section');
+      postSection.style.borderBottom = '1px solid #ccc';
+      postSection.style.padding = '10px 0';
+
+      const postTitle = document.createElement('h2');
+      postTitle.textContent = title;
+
+      const postText = document.createElement('p');
+      postText.textContent = content;
+
+      postSection.appendChild(postTitle);
+      postSection.appendChild(postText);
+
+      document.getElementById('postsContainer').appendChild(postSection);
+
+      // Clear input fields
+      document.getElementById('postTitle').value = '';
+      document.getElementById('postContent').value = '';
+    } else {
+      alert('Please enter both a title and content for your post.');
+    }
+  }
+</script>
+
 </div> <!-- closes .tab-content -->
 
 </body>
