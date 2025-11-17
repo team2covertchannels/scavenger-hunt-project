@@ -166,30 +166,29 @@
 <div id="hobbies" data-tab-content style="padding: 20px;">
   <h1 style="text-align:center;">Share Your Favorite Hobbies</h1>
 
-  <!-- Flex container for layout -->
-  <div style="display: flex; gap: 40px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap;">
-    
-    <!-- Posts Column (Left) -->
-    <div id="postsContainer" style="flex: 1 1 60%; min-width: 300px;">
-      <!-- Posts will appear here -->
-    </div>
+  <!-- Bordered container -->
+  <div style="border: 2px solid #ccc; border-radius: 10px; padding: 20px; margin-top: 20px;">
 
-    <!-- Form Column (Right) -->
-    <div style="flex: 1 1 35%; min-width: 250px;">
-      <input type="text" id="postTitle" placeholder="Post Title" style="width: 100%; padding: 10px; margin-bottom: 10px;"><br>
-      <textarea id="postContent" placeholder="Write about your hobby..." rows="5" style="width: 100%; padding: 10px;"></textarea><br>
-      <input type="file" id="postImage" accept="image/*" style="margin-top: 10px;"><br>
-      <button onclick="addPost()" style="margin-top: 10px; padding: 10px 20px; width: 100%;">Add Post</button>
-    </div>
+    <!-- Flex container for layout -->
+    <div style="display: flex; gap: 40px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap;">
 
+      <!-- Posts Column (Left) -->
+      <div id="postsContainer" style="flex: 1 1 60%; min-width: 300px;">
+        <!-- Posts will appear here -->
+      </div>
+
+      <!-- Form Column (Right) -->
+      <div style="flex: 1 1 35%; min-width: 250px;">
+        <input type="text" id="postTitle" placeholder="Post Title" style="width: 100%; padding: 10px; margin-bottom: 10px;"><br>
+        <textarea id="postContent" placeholder="Write about your hobby..." rows="5" style="width: 100%; padding: 10px;"></textarea><br>
+        <input type="file" id="postImage" accept="image/*" style="margin-top: 10px;"><br>
+        <button onclick="addPost()" style="margin-top: 10px; padding: 10px 20px; width: 100%;">Add Post</button>
+      </div>
+
+    </div>
   </div>
 </div>
 
-  <!-- Posts Container -->
-  <div id="postsContainer">
-    <!-- New posts will appear here -->
-  </div>
-</div>
 <script>
   window.onload = function () {
     const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
@@ -217,7 +216,6 @@
         saveAndRenderPost({ title, content, image: null, timestamp });
       }
 
-      // Clear input fields
       document.getElementById('postTitle').value = '';
       document.getElementById('postContent').value = '';
       imageInput.value = '';
@@ -237,6 +235,7 @@
     const postSection = document.createElement('section');
     postSection.style.borderBottom = '1px solid #ccc';
     postSection.style.padding = '10px 0';
+    postSection.style.overflow = 'hidden';
 
     const postTitle = document.createElement('h2');
     postTitle.textContent = post.title;
@@ -259,25 +258,23 @@
       deletePost(post);
     };
 
-    postSection.appendChild(postTitle);
-    postSection.appendChild(postText);
-    postSection.appendChild(postTime);
-
     if (post.image) {
       const img = document.createElement('img');
       img.src = post.image;
       img.alt = "User uploaded hobby image";
-      img.style.width = "300px";
+      img.style.float = "right";
+      img.style.marginLeft = "20px";
+      img.style.marginBottom = "10px";
+      img.style.width = "200px";
       img.style.height = "auto";
       img.style.borderRadius = "8px";
-      img.style.marginTop = "10px";
       img.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-      img.style.display = "block";
-      img.style.marginLeft = "auto";
-      img.style.marginRight = "auto";
       postSection.appendChild(img);
     }
 
+    postSection.appendChild(postTitle);
+    postSection.appendChild(postText);
+    postSection.appendChild(postTime);
     postSection.appendChild(deleteBtn);
 
     const container = document.getElementById('postsContainer');
