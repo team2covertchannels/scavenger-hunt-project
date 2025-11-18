@@ -254,6 +254,12 @@ function clearMusicInputs() {
     deleteMusicPost(post);
   };
 
+  function saveAndRenderMusicPost(post) {
+  const savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
+  savedPosts.unshift(post);
+  localStorage.setItem('musicPosts', JSON.stringify(savedPosts));
+  renderMusicPost(post, true);
+}
   postSection.appendChild(postTitle);
   postSection.appendChild(postText);
   postSection.appendChild(postTime);
