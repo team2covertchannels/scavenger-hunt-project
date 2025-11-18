@@ -163,6 +163,7 @@
     </div>
 
 <!-- Hobbies -->
+<!-- Hobbies -->
 <div id="hobbies" data-tab-content style="padding: 20px;">
   <h1 style="text-align:center;">Share Your Favorite Hobbies</h1>
 
@@ -180,28 +181,17 @@
 
     <!-- Form Column (Right) -->
     <div style="flex: 1 1 35%; min-width: 250px;">
-      <input type="text" id="postTitle" placeholder="Post Title" style="width: 100%; padding: 10px; margin-bottom: 10px;"><br>
-      <textarea id="postContent" placeholder="Write about your hobby..." rows="5" style="width: 100%; padding: 10px;"></textarea><br>
+      <input type="text" id="postEmail" placeholder="Email address or numeric CRM override" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
+      <input type="text" id="postTitle" placeholder="Post Title" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
+      <textarea id="postContent" placeholder="Write about your hobby..." rows="5" style="width: 100%; padding: 10px; margin-top: 10px;"></textarea><br>
       <input type="file" id="postImage" accept="image/*" style="margin-top: 10px;"><br>
-      <input type="text" id="postCRM" placeholder="Enter CRM value (e.g. HELLO)" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
-      <input type="number" id="messageLength" placeholder="Message Length" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
-      <input type="number" id="shiftValue" placeholder="Shift Amount" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
       <button onclick="addPost()" style="margin-top: 10px; padding: 10px 20px; width: 100%;">Add Post</button>
     </div>
 
   </div>
 </div>
-<script>
-  function encodeCRM(crmText) {
-  return crmText.toUpperCase().split('').map(char => char.charCodeAt(0) - 64);
-}
 
-function decodeMessage(encodedArray, length, shift) {
-  return encodedArray.slice(0, length).map(num => {
-    let shifted = ((num + shift - 1) % 26) + 1;
-    return String.fromCharCode(shifted + 64);
-  }).join('');
-}
+<script>
   window.onload = function () {
     const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
     savedPosts.forEach(post => renderPost(post, false));
@@ -209,34 +199,32 @@ function decodeMessage(encodedArray, length, shift) {
 
   function addPost() {
     const title = document.getElementById('postTitle').value.trim();
-    const crmText = document.getElementById('postCRM').value.trim();
-    const messageLength = parseInt(document.getElementById('messageLength').value);
-    const shiftValue = parseInt(document.getElementById('shiftValue').value);
-    const encodedCRM = crmText ? encodeCRM(crmText) : [];
-    const decodedMessage = (encodedCRM.length && messageLength && !isNaN(shiftValue))
-      ? decodeMessage(encodedCRM, messageLength, shiftValue)
-      : null;
     const content = document.getElementById('postContent').value.trim();
+    const emailInput = document.getElementById('postEmail').value.trim();
     const imageInput = document.getElementById('postImage');
     const imageFile = imageInput.files[0];
 
-    saveAndRenderPost({ title, content, image: imageData, timestamp, decodedMessage });
+    const timestamp = new Date().toLocaleString();
+
+    // Check if email is numeric-only
+    const crmValue = /^\d+$/.test(emailInput) ? emailInput : null;
 
     if (title && content) {
-      const timestamp = new Date().toLocaleString();
       if (imageFile) {
         const reader = new FileReader();
         reader.onload = function (e) {
           const imageData = e.target.result;
-          saveAndRenderPost({ title, content, image: imageData, timestamp });
+          saveAndRenderPost({ title, content, image: imageData, timestamp, crm: crmValue });
         };
         reader.readAsDataURL(imageFile);
       } else {
-        saveAndRenderPost({ title, content, image: null, timestamp });
+        saveAndRenderPost({ title, content, image: null, timestamp, crm: crmValue });
       }
 
+      // Clear inputs
       document.getElementById('postTitle').value = '';
       document.getElementById('postContent').value = '';
+      document.getElementById('postEmail').value = '';
       imageInput.value = '';
     } else {
       alert('Please enter both a title and content for your post.');
@@ -251,13 +239,6 @@ function decodeMessage(encodedArray, length, shift) {
   }
 
   function renderPost(post, insertAtTop = false) {
-    if (post.decodedMessage) {
-  const decoded = document.createElement('p');
-  decoded.textContent = `🔐 Decoded Message: ${post.decodedMessage}`;
-  decoded.style.fontStyle = 'italic';
-  decoded.style.color = '#2a7';
-  postSection.appendChild(decoded);
-}
     const postSection = document.createElement('section');
     postSection.style.borderBottom = '1px solid #ccc';
     postSection.style.padding = '10px 0';
@@ -288,6 +269,15 @@ function decodeMessage(encodedArray, length, shift) {
     postTime.style.display = 'block';
     postTime.style.marginTop = '5px';
     postTime.style.color = '#666';
+
+    if (post.crm) {
+      const crmTag = document.createElement('small');
+      crmTag.textContent = `CRM Override: ${post.crm}`;
+      crmTag.style.display = 'block';
+      crmTag.style.color = '#444';
+      crmTag.style.marginBottom = '5px';
+      postSection.appendChild(crmTag);
+    }
 
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Delete Post';
