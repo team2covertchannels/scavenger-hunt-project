@@ -167,23 +167,31 @@
   <h1 style="text-align:center;">Share Your Favorite Hobbies</h1>
 
   <!-- Bordered container -->
-  <div style="border: 2px solid #ccc; border-radius: 10px; padding: 20px; margin-top: 20px;">
+<div id="hobbies" data-tab-content style="padding: 20px;">
+  <h1 style="text-align:center;">Share Your Favorite Hobbies</h1>
 
-    <!-- Flex container for layout -->
-    <div style="display: flex; gap: 40px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap;">
+  <!-- Flex container for layout -->
+  <div style="display: flex; gap: 40px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap;">
 
-      <!-- Posts Column (Left) -->
-      <div id="postsContainer" style="flex: 1 1 60%; min-width: 300px;">
-        <!-- Posts will appear here -->
+    <!-- Posts Column (Left) with border -->
+    <div style="flex: 1 1 60%; min-width: 300px;">
+      <div style="border: 2px solid #ccc; border-radius: 10px; padding: 20px;">
+        <div id="postsContainer">
+          <!-- Posts will appear here -->
+        </div>
       </div>
+    </div>
 
-      <!-- Form Column (Right) -->
-      <div style="flex: 1 1 35%; min-width: 250px;">
-        <input type="text" id="postTitle" placeholder="Post Title" style="width: 100%; padding: 10px; margin-bottom: 10px;"><br>
-        <textarea id="postContent" placeholder="Write about your hobby..." rows="5" style="width: 100%; padding: 10px;"></textarea><br>
-        <input type="file" id="postImage" accept="image/*" style="margin-top: 10px;"><br>
-        <button onclick="addPost()" style="margin-top: 10px; padding: 10px 20px; width: 100%;">Add Post</button>
-      </div>
+    <!-- Form Column (Right) -->
+    <div style="flex: 1 1 35%; min-width: 250px;">
+      <input type="text" id="postTitle" placeholder="Post Title" style="width: 100%; padding: 10px; margin-bottom: 10px;"><br>
+      <textarea id="postContent" placeholder="Write about your hobby..." rows="5" style="width: 100%; padding: 10px;"></textarea><br>
+      <input type="file" id="postImage" accept="image/*" style="margin-top: 10px;"><br>
+      <button onclick="addPost()" style="margin-top: 10px; padding: 10px 20px; width: 100%;">Add Post</button>
+    </div>
+
+  </div>
+</div>
 
     </div>
   </div>
