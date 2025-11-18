@@ -9,25 +9,13 @@ window.addEventListener('load', function () {
 });
 
 function loadMusicPosts() {
-  const musicPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
-  console.log('Found music posts:', musicPosts.length);
-  musicPosts.forEach(post => renderMusicPost(post, false));
-}
-
-// Load music posts when page loads
-window.addEventListener('load', function () {
-  console.log('Loading music posts...');
-  loadMusicPosts();
-});
-
-function loadMusicPosts() {
-  const musicPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
-  console.log('Found music posts:', musicPosts.length);
-  musicPosts.forEach(post => renderMusicPost(post, false));
+  const posts = JSON.parse(localStorage.getItem('musicPosts')) || [];
+  console.log('Loading music posts:', posts.length);
+  posts.forEach(post => renderMusicPost(post, false));
 }
 
 function addMusicPost() {
-  console.log('Adding music post...');
+  console.log('Add music post clicked');
   const title = document.getElementById('musicTitle').value.trim();
   const content = document.getElementById('musicContent').value.trim();
   const emailInput = document.getElementById('musicEmail').value.trim();
@@ -54,56 +42,51 @@ function addMusicPost() {
   };
 
   if (imageFile) {
-    console.log('Reading music image:', imageFile.name, 'Size:', imageFile.size);
+    console.log('📷 Reading music image:', imageFile.name);
     const reader = new FileReader();
     reader.onload = function (e) {
-      console.log('Music image loaded successfully, data length:', e.target.result.length);
+      console.log('✅ Music image loaded!');
       postData.image = e.target.result;
       saveAndRenderMusicPost(postData);
-      clearMusicInputs(); // Clear AFTER image is loaded
+      clearMusicInputs();
     };
     reader.onerror = function (err) {
-      console.error("❌ Music image read error:", err);
-      alert("There was an error reading the image. Please try a smaller image.");
+      console.error("❌ Music image error:", err);
+      alert("There was an error reading the image.");
     };
     reader.readAsDataURL(imageFile);
   } else {
-    console.log('No image selected');
     saveAndRenderMusicPost(postData);
     clearMusicInputs();
   }
 }
 
 function clearMusicInputs() {
-  const elements = ['musicTitle', 'musicContent', 'musicEmail', 'musicImage'];
-  elements.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
+  document.getElementById('musicTitle').value = '';
+  document.getElementById('musicContent').value = '';
+  document.getElementById('musicEmail').value = '';
+  document.getElementById('musicImage').value = '';
+  console.log('✨ Music inputs cleared');
 }
 
 function saveAndRenderMusicPost(post) {
   const savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
   savedPosts.unshift(post);
   localStorage.setItem('musicPosts', JSON.stringify(savedPosts));
-  console.log('Music post saved');
   renderMusicPost(post, true);
 }
 
 function renderMusicPost(post, insertAtTop = false) {
   const container = document.getElementById('musicPostsContainer');
-  if (!container) {
-    console.error('musicPostsContainer not found');
-    return;
-  }
+  if (!container) return;
 
   const postSection = document.createElement('section');
   postSection.style.borderBottom = '1px solid #ccc';
   postSection.style.padding = '10px 0';
   postSection.style.overflow = 'hidden';
+  postSection.style.marginBottom = '15px';
 
   if (post.image) {
-    console.log('Rendering music post with image');
     const img = document.createElement('img');
     img.src = post.image;
     img.alt = "User uploaded music image";
@@ -167,5 +150,4 @@ function deleteMusicPost(targetPost) {
       post.timestamp === targetPost.timestamp)
   );
   localStorage.setItem('musicPosts', JSON.stringify(savedPosts));
-  console.log('Music post deleted');
 }
