@@ -470,7 +470,6 @@ function renderPost(post, insertAtTop = false) {
 
 
 <!-- Recommendations -->
-<!-- Recommendations -->
 <div id="recommendations" data-tab-content style="padding: 20px;">
   <h1 style="text-align:center;">Share Your Recommendations</h1>
 
@@ -498,16 +497,34 @@ function renderPost(post, insertAtTop = false) {
 <script>
   // Load recommendation posts on page load
   window.addEventListener('load', function () {
+    console.log('Loading saved posts...');
     const recommendationPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
+    console.log('Found posts:', recommendationPosts.length);
     recommendationPosts.forEach(post => renderRecommendationPost(post, false));
   });
 
   function addRecommendationPost() {
+    console.log('Add button clicked');
+    
     const title = document.getElementById('recTitle').value.trim();
     const content = document.getElementById('recContent').value.trim();
     const emailInput = document.getElementById('recEmail').value.trim();
     const imageInput = document.getElementById('recImage');
+    
+    console.log('Title:', title);
+    console.log('Content:', content);
+    console.log('Image input found:', !!imageInput);
+    console.log('Files selected:', imageInput.files.length);
+    
     const imageFile = imageInput.files[0];
+    
+    if (imageFile) {
+      console.log('Image file details:', {
+        name: imageFile.name,
+        size: imageFile.size,
+        type: imageFile.type
+      });
+    }
 
     if (!title || !content) {
       alert('Please enter both a title and content for your recommendation.');
@@ -529,44 +546,56 @@ function renderPost(post, insertAtTop = false) {
     };
 
     if (imageFile) {
+      console.log('Starting to read image file...');
       const reader = new FileReader();
+      
       reader.onload = function (e) {
+        console.log('Image loaded successfully, data length:', e.target.result.length);
         postData.image = e.target.result;
         saveAndRenderRecommendationPost(postData);
         clearRecommendationInputs();
       };
+      
       reader.onerror = function (err) {
         console.error("❌ Image read error:", err);
-        alert("There was an error reading the image.");
+        alert("There was an error reading the image. Please try a smaller image.");
       };
+      
       reader.readAsDataURL(imageFile);
     } else {
+      console.log('No image file, saving post without image');
       saveAndRenderRecommendationPost(postData);
       clearRecommendationInputs();
     }
   }
 
-function clearRecommendationInputs() {
-  document.getElementById('recTitle').value = '';
-  document.getElementById('recContent').value = '';
-  document.getElementById('recEmail').value = '';
-  document.getElementById('recImage').value = '';  // Just clear the value
-}
+  function clearRecommendationInputs() {
+    console.log('Clearing inputs...');
+    document.getElementById('recTitle').value = '';
+    document.getElementById('recContent').value = '';
+    document.getElementById('recEmail').value = '';
+    document.getElementById('recImage').value = '';
+  }
 
   function saveAndRenderRecommendationPost(post) {
+    console.log('Saving post with image:', !!post.image);
     const savedPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
     savedPosts.unshift(post);
     localStorage.setItem('recommendationPosts', JSON.stringify(savedPosts));
+    console.log('Post saved, total posts:', savedPosts.length);
     renderRecommendationPost(post, true);
   }
 
   function renderRecommendationPost(post, insertAtTop = false) {
+    console.log('Rendering post:', post.title, 'Has image:', !!post.image);
+    
     const postSection = document.createElement('section');
     postSection.style.borderBottom = '1px solid #ccc';
     postSection.style.padding = '10px 0';
     postSection.style.overflow = 'hidden';
 
     if (post.image) {
+      console.log('Adding image to post');
       const img = document.createElement('img');
       img.src = post.image;
       img.alt = "User uploaded recommendation image";
