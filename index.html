@@ -182,45 +182,38 @@
   const crmValue = isNumericOverride ? emailInput : null;
   const emailToDisplay = isNumericOverride ? null : emailInput;
 
-  if (!title || !content) {
-    alert('Please enter both a title and content for your music post.');
-    return;
-  }
+  if (title && content) {
+    const postData = {
+      title,
+      content,
+      image: null,
+      timestamp,
+      crm: crmValue,
+      email: emailToDisplay
+    };
 
-  const postData = {
-    title,
-    content,
-    image: null,
-    timestamp,
-    crm: crmValue,
-    email: emailToDisplay
-  };
-
-  if (imageFile) {
-    console.log("📷 Image file selected:", imageFile.name);
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-      console.log("Image loaded successfully");
-      postData.image = e.target.result;
+    if (imageFile) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        postData.image = e.target.result;
+        saveAndRenderMusicPost(postData);
+        clearMusicInputs(); // 
+      };
+      reader.readAsDataURL(imageFile);
+    } else {
       saveAndRenderMusicPost(postData);
-    };
-
-    reader.onerror = function (err) {
-      console.error("Error reading image:", err);
-      alert("There was an error loading your image.");
-    };
-
-    reader.readAsDataURL(imageFile);
+      clearMusicInputs();
+    }
   } else {
-    saveAndRenderMusicPost(postData);
+    alert('Please enter both a title and content for your music post.');
   }
+}
 
-  // Clear form inputs
+function clearMusicInputs() {
   document.getElementById('musicTitle').value = '';
   document.getElementById('musicContent').value = '';
   document.getElementById('musicEmail').value = '';
-  imageInput.value = '';
+  document.getElementById('musicImage').value = '';
 }
   function deleteMusicPost(targetPost) {
     let savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
