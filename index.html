@@ -173,40 +173,28 @@
   function addMusicPost() {
   const title = document.getElementById('musicTitle').value.trim();
   const content = document.getElementById('musicContent').value.trim();
-  const emailInput = document.getElementById('musicEmail').value.trim();
-  const imageInput = document.getElementById('musicImage');
-  const imageFile = imageInput.files[0];
 
-  const timestamp = new Date().toLocaleString();
-  const isNumericOverride = /^\d+$/.test(emailInput);
-  const crmValue = isNumericOverride ? emailInput : null;
-  const emailToDisplay = isNumericOverride ? null : emailInput;
-
-  if (title && content) {
-    const postData = {
-      title,
-      content,
-      image: null,
-      timestamp,
-      crm: crmValue,
-      email: emailToDisplay
-    };
-
-    if (imageFile) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        postData.image = e.target.result;
-        saveAndRenderMusicPost(postData);
-        clearMusicInputs(); // 
-      };
-      reader.readAsDataURL(imageFile);
-    } else {
-      saveAndRenderMusicPost(postData);
-      clearMusicInputs();
-    }
-  } else {
+  if (!title || !content) {
     alert('Please enter both a title and content for your music post.');
+    return;
   }
+
+  const postData = {
+    title,
+    content,
+    image: null,
+    timestamp: new Date().toLocaleString(),
+    crm: null,
+    email: null
+  };
+
+  saveAndRenderMusicPost(postData);
+
+  // Clear inputs
+  document.getElementById('musicTitle').value = '';
+  document.getElementById('musicContent').value = '';
+  document.getElementById('musicEmail').value = '';
+  document.getElementById('musicImage').value = '';
 }
 
 function clearMusicInputs() {
