@@ -357,8 +357,8 @@ function renderPost(post, insertAtTop = false) {
   </div>
 </div>
 
-// Load recommendation posts on page load
-window.onload = function () {
+<script>
+  window.onload = function () {
   const hobbyPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
   hobbyPosts.forEach(post => renderPost(post, false));
 
@@ -480,6 +480,7 @@ function deleteRecommendationPost(targetPost) {
   );
   localStorage.setItem('recommendationPosts', JSON.stringify(savedPosts));
 }
+  </script>
 </div> <!-- closes .tab-content -->
 
 </body>
