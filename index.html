@@ -215,6 +215,69 @@ function clearMusicInputs() {
   document.getElementById('musicEmail').value = '';
   document.getElementById('musicImage').value = '';
 }
+
+  function renderMusicPost(post, insertAtTop = false) {
+  const postSection = document.createElement('section');
+  postSection.style.borderBottom = '1px solid #ccc';
+  postSection.style.padding = '10px 0';
+  postSection.style.overflow = 'hidden';
+
+  if (post.image) {
+    const img = document.createElement('img');
+    img.src = post.image;
+    img.alt = "User uploaded music image";
+    img.style.float = "right";
+    img.style.marginLeft = "20px";
+    img.style.marginBottom = "10px";
+    img.style.width = "200px";
+    img.style.height = "auto";
+    img.style.borderRadius = "8px";
+    img.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+    postSection.appendChild(img);
+  }
+
+  const postTitle = document.createElement('h2');
+  postTitle.textContent = post.title;
+
+  const postText = document.createElement('p');
+  postText.textContent = post.content;
+
+  const postTime = document.createElement('small');
+  postTime.textContent = `Posted on ${post.timestamp}`;
+  postTime.style.display = 'block';
+  postTime.style.marginTop = '5px';
+  postTime.style.color = '#666';
+
+  if (post.email && !/^\d+$/.test(post.email)) {
+    const emailTag = document.createElement('small');
+    emailTag.textContent = `Email: ${post.email}`;
+    emailTag.style.display = 'block';
+    emailTag.style.color = '#444';
+    emailTag.style.marginBottom = '5px';
+    postSection.appendChild(emailTag);
+  }
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = 'Delete Music Post';
+  deleteBtn.style.marginTop = '10px';
+  deleteBtn.style.padding = '5px 10px';
+  deleteBtn.onclick = function () {
+    postSection.remove();
+    deleteMusicPost(post);
+  };
+
+  postSection.appendChild(postTitle);
+  postSection.appendChild(postText);
+  postSection.appendChild(postTime);
+  postSection.appendChild(deleteBtn);
+
+  const container = document.getElementById('musicPostsContainer');
+  if (insertAtTop) {
+    container.insertBefore(postSection, container.firstChild);
+  } else {
+    container.appendChild(postSection);
+  }
+}
   function deleteMusicPost(targetPost) {
     let savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
     savedPosts = savedPosts.filter(post =>
