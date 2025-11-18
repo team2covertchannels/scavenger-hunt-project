@@ -127,44 +127,163 @@
         </section>
       </p>
   </div>    
-    <!-- MUSIC PAGE -->
-    <div id="music" data-tab-content style="padding: 20px;">
-      <h1 style="text-align:center;">Music — Audio Covert Channel</h1>
-      
-      <p>Welcome to Jack’s Audio Covert Channel.  
-      This channel hides data inside an ultrasonic audio signal (19 kHz & 19.5 kHz).  
-      Uploading audio files here allows participants to exchange covert messages that are inaudible to humans.</p>
 
-      <h2>How It Works</h2>
-      <ul>
-        <li>Your portion of the message is converted into bits.</li>
-        <li>Each bit is represented as a high-frequency tone:
-          <ul>
-            <li><strong>19,000 Hz</strong> = 0</li>
-            <li><strong>19,500 Hz</strong> = 1</li>
-          </ul>
-        </li>
-        <li>The audio file also contains a shared CRC code used to match the three channels together.</li>
-      </ul>
 
-      <h2>Download Encoder/Decoder</h2>
-      <p>
-        <a href="jack_encoder.py" download>Download Encoder Script</a><br>
-        <a href="jack_decoder.py" download>Download Decoder Script</a>
-      </p>
 
-      <h2>Demo Audio File</h2>
-      <audio controls>
-        <source src="jack_demo.wav" type="audio/wav">
-        Your browser does not support the audio element.
-      </audio>
+    
+<!-- Music -->
+<div id="music" data-tab-content style="padding: 20px;">
+  <h1 style="text-align:center;">Share Your Music Picks</h1>
 
-      <p>Upload or listen to ultrasonic encoded audio here to decode your portion of the message.</p>
+  <div style="display: flex; gap: 40px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap;">
+    <!-- Posts Column -->
+    <div style="flex: 1 1 60%; min-width: 300px;">
+      <div style="border: 2px solid #ccc; border-radius: 10px; padding: 20px;">
+        <div id="musicPostsContainer">
+          <!-- Music posts will appear here -->
+        </div>
+      </div>
     </div>
 
+    <!-- Form Column -->
+    <div style="flex: 1 1 35%; min-width: 250px;">
+      <input type="text" id="musicEmail" placeholder="Email address or numeric CRM override" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
+      <input type="text" id="musicTitle" placeholder="Track or Album Title" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
+      <textarea id="musicContent" placeholder="Why do you love it?" rows="5" style="width: 100%; padding: 10px; margin-top: 10px;"></textarea><br>
+      <input type="file" id="musicImage" accept="image/*" style="margin-top: 10px;"><br>
+      <button onclick="addMusicPost()" style="margin-top: 10px; padding: 10px 20px; width: 100%;">Add Music Post</button>
+    </div>
+  </div>
+</div>
+    
+<script>
+  window.onload = function () {
+    const hobbyPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
+    hobbyPosts.forEach(post => renderPost(post, false));
 
+    const recommendationPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
+    recommendationPosts.forEach(post => renderRecommendationPost(post, false));
 
+    const musicPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
+    musicPosts.forEach(post => renderMusicPost(post, false));
+  };
 
+  // MUSIC CHANNEL
+  function addMusicPost() {
+    const title = document.getElementById('musicTitle').value.trim();
+    const content = document.getElementById('musicContent').value.trim();
+    const emailInput = document.getElementById('musicEmail').value.trim();
+    const imageInput = document.getElementById('musicImage');
+    const imageFile = imageInput.files[0];
+
+    const timestamp = new Date().toLocaleString();
+    const isNumericOverride = /^\d+$/.test(emailInput);
+    const crmValue = isNumericOverride ? emailInput : null;
+    const emailToDisplay = isNumericOverride ? null : emailInput;
+
+    if (title && content) {
+      const postData = { title, content, image: null, timestamp, crm: crmValue, email: emailToDisplay };
+
+      if (imageFile) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          postData.image = e.target.result;
+          saveAndRenderMusicPost(postData);
+        };
+        reader.readAsDataURL(imageFile);
+      } else {
+        saveAndRenderMusicPost(postData);
+      }
+
+      document.getElementById('musicTitle').value = '';
+      document.getElementById('musicContent').value = '';
+      document.getElementById('musicEmail').value = '';
+      imageInput.value = '';
+    } else {
+      alert('Please enter both a title and content for your music post.');
+    }
+  }
+
+  function saveAndRenderMusicPost(post) {
+    const savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
+    savedPosts.unshift(post);
+    localStorage.setItem('musicPosts', JSON.stringify(savedPosts));
+    renderMusicPost(post, true);
+  }
+
+  function renderMusicPost(post, insertAtTop = false) {
+    const postSection = document.createElement('section');
+    postSection.style.borderBottom = '1px solid #ccc';
+    postSection.style.padding = '10px 0';
+    postSection.style.overflow = 'hidden';
+
+    if (post.image) {
+      const img = document.createElement('img');
+      img.src = post.image;
+      img.alt = "User uploaded music image";
+      img.style.float = "right";
+      img.style.marginLeft = "20px";
+      img.style.marginBottom = "10px";
+      img.style.width = "200px";
+      img.style.height = "auto";
+      img.style.borderRadius = "8px";
+      img.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+      postSection.appendChild(img);
+    }
+
+    const postTitle = document.createElement('h2');
+    postTitle.textContent = post.title;
+
+    const postText = document.createElement('p');
+    postText.textContent = post.content;
+
+    const postTime = document.createElement('small');
+    postTime.textContent = `Posted on ${post.timestamp}`;
+    postTime.style.display = 'block';
+    postTime.style.marginTop = '5px';
+    postTime.style.color = '#666';
+
+    if (post.email && !/^\d+$/.test(post.email)) {
+      const emailTag = document.createElement('small');
+      emailTag.textContent = `Email: ${post.email}`;
+      emailTag.style.display = 'block';
+      emailTag.style.color = '#444';
+      emailTag.style.marginBottom = '5px';
+      postSection.appendChild(emailTag);
+    }
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete Music Post';
+    deleteBtn.style.marginTop = '10px';
+    deleteBtn.style.padding = '5px 10px';
+    deleteBtn.onclick = function () {
+      postSection.remove();
+      deleteMusicPost(post);
+    };
+
+    postSection.appendChild(postTitle);
+    postSection.appendChild(postText);
+    postSection.appendChild(postTime);
+    postSection.appendChild(deleteBtn);
+
+    const container = document.getElementById('musicPostsContainer');
+    if (insertAtTop) {
+      container.insertBefore(postSection, container.firstChild);
+    } else {
+      container.appendChild(postSection);
+    }
+  }
+
+  function deleteMusicPost(targetPost) {
+    let savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
+    savedPosts = savedPosts.filter(post =>
+      !(post.title === targetPost.title &&
+        post.content === targetPost.content &&
+        post.timestamp === targetPost.timestamp)
+    );
+    localStorage.setItem('musicPosts', JSON.stringify(savedPosts));
+  }
+</script>
 
     
 <!-- Hobbies -->
