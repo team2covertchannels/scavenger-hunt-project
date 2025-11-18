@@ -183,12 +183,25 @@
       <input type="text" id="postTitle" placeholder="Post Title" style="width: 100%; padding: 10px; margin-bottom: 10px;"><br>
       <textarea id="postContent" placeholder="Write about your hobby..." rows="5" style="width: 100%; padding: 10px;"></textarea><br>
       <input type="file" id="postImage" accept="image/*" style="margin-top: 10px;"><br>
+      <input type="text" id="postCRM" placeholder="Enter CRM value (e.g. HELLO)" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
+      <input type="number" id="messageLength" placeholder="Message Length" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
+      <input type="number" id="shiftValue" placeholder="Shift Amount" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
       <button onclick="addPost()" style="margin-top: 10px; padding: 10px 20px; width: 100%;">Add Post</button>
     </div>
 
   </div>
 </div>
 <script>
+  function encodeCRM(crmText) {
+  return crmText.toUpperCase().split('').map(char => char.charCodeAt(0) - 64);
+}
+
+function decodeMessage(encodedArray, length, shift) {
+  return encodedArray.slice(0, length).map(num => {
+    let shifted = ((num + shift - 1) % 26) + 1;
+    return String.fromCharCode(shifted + 64);
+  }).join('');
+}
   window.onload = function () {
     const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
     savedPosts.forEach(post => renderPost(post, false));
@@ -196,9 +209,18 @@
 
   function addPost() {
     const title = document.getElementById('postTitle').value.trim();
+    const crmText = document.getElementById('postCRM').value.trim();
+    const messageLength = parseInt(document.getElementById('messageLength').value);
+    const shiftValue = parseInt(document.getElementById('shiftValue').value);
+    const encodedCRM = crmText ? encodeCRM(crmText) : [];
+    const decodedMessage = (encodedCRM.length && messageLength && !isNaN(shiftValue))
+      ? decodeMessage(encodedCRM, messageLength, shiftValue)
+      : null;
     const content = document.getElementById('postContent').value.trim();
     const imageInput = document.getElementById('postImage');
     const imageFile = imageInput.files[0];
+
+    saveAndRenderPost({ title, content, image: imageData, timestamp, decodedMessage });
 
     if (title && content) {
       const timestamp = new Date().toLocaleString();
@@ -229,6 +251,13 @@
   }
 
   function renderPost(post, insertAtTop = false) {
+    if (post.decodedMessage) {
+  const decoded = document.createElement('p');
+  decoded.textContent = `🔐 Decoded Message: ${post.decodedMessage}`;
+  decoded.style.fontStyle = 'italic';
+  decoded.style.color = '#2a7';
+  postSection.appendChild(decoded);
+}
     const postSection = document.createElement('section');
     postSection.style.borderBottom = '1px solid #ccc';
     postSection.style.padding = '10px 0';
