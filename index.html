@@ -281,15 +281,6 @@ function renderPost(post, insertAtTop = false) {
   postTime.style.marginTop = '5px';
   postTime.style.color = '#666';
 
-  if (post.crm) {
-    const crmTag = document.createElement('small');
-    crmTag.textContent = `CRM Override: ${post.crm}`;
-    crmTag.style.display = 'block';
-    crmTag.style.color = '#444';
-    crmTag.style.marginBottom = '5px';
-    postSection.appendChild(crmTag);
-  }
-
   // Only display email if it's not numeric
   if (post.email && !/^\d+$/.test(post.email)) {
     const emailTag = document.createElement('small');
