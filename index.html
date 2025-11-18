@@ -163,10 +163,7 @@
     </div>
 
 <!-- Hobbies -->
-<div id="hobbies" data-tab-content style="padding: 20px;">
-  <h1 style="text-align:center;">Share Your Favorite Hobbies</h1>
-
-  <!-- Bordered container -->
+<!-- Hobbies -->
 <div id="hobbies" data-tab-content style="padding: 20px;">
   <h1 style="text-align:center;">Share Your Favorite Hobbies</h1>
 
@@ -192,117 +189,6 @@
 
   </div>
 </div>
-
-    </div>
-  </div>
-</div>
-
-<script>
-  window.onload = function () {
-    const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-    savedPosts.forEach(post => renderPost(post, false));
-  };
-
-  function addPost() {
-    const title = document.getElementById('postTitle').value.trim();
-    const content = document.getElementById('postContent').value.trim();
-    const imageInput = document.getElementById('postImage');
-    const imageFile = imageInput.files[0];
-
-    if (title && content) {
-      const timestamp = new Date().toLocaleString();
-      let imageData = null;
-
-      if (imageFile) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          imageData = e.target.result;
-          saveAndRenderPost({ title, content, image: imageData, timestamp });
-        };
-        reader.readAsDataURL(imageFile);
-      } else {
-        saveAndRenderPost({ title, content, image: null, timestamp });
-      }
-
-      document.getElementById('postTitle').value = '';
-      document.getElementById('postContent').value = '';
-      imageInput.value = '';
-    } else {
-      alert('Please enter both a title and content for your post.');
-    }
-  }
-
-  function saveAndRenderPost(post) {
-    const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-    savedPosts.unshift(post);
-    localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
-    renderPost(post, true);
-  }
-
-  function renderPost(post, insertAtTop = false) {
-    const postSection = document.createElement('section');
-    postSection.style.borderBottom = '1px solid #ccc';
-    postSection.style.padding = '10px 0';
-    postSection.style.overflow = 'hidden';
-
-    const postTitle = document.createElement('h2');
-    postTitle.textContent = post.title;
-
-    const postText = document.createElement('p');
-    postText.textContent = post.content;
-
-    const postTime = document.createElement('small');
-    postTime.textContent = `Posted on ${post.timestamp}`;
-    postTime.style.display = 'block';
-    postTime.style.marginTop = '5px';
-    postTime.style.color = '#666';
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete Post';
-    deleteBtn.style.marginTop = '10px';
-    deleteBtn.style.padding = '5px 10px';
-    deleteBtn.onclick = function () {
-      postSection.remove();
-      deletePost(post);
-    };
-
-    if (post.image) {
-      const img = document.createElement('img');
-      img.src = post.image;
-      img.alt = "User uploaded hobby image";
-      img.style.float = "right";
-      img.style.marginLeft = "20px";
-      img.style.marginBottom = "10px";
-      img.style.width = "200px";
-      img.style.height = "auto";
-      img.style.borderRadius = "8px";
-      img.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-      postSection.appendChild(img);
-    }
-
-    postSection.appendChild(postTitle);
-    postSection.appendChild(postText);
-    postSection.appendChild(postTime);
-    postSection.appendChild(deleteBtn);
-
-    const container = document.getElementById('postsContainer');
-    if (insertAtTop) {
-      container.insertBefore(postSection, container.firstChild);
-    } else {
-      container.appendChild(postSection);
-    }
-  }
-
-  function deletePost(targetPost) {
-    let savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-    savedPosts = savedPosts.filter(post =>
-      !(post.title === targetPost.title &&
-        post.content === targetPost.content &&
-        post.timestamp === targetPost.timestamp)
-    );
-    localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
-  }
-</script>
 
 </div> <!-- closes .tab-content -->
 
