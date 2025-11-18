@@ -157,16 +157,17 @@
 </div>
     
 <script>
-  window.onload = function () {
-    const hobbyPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-    hobbyPosts.forEach(post => renderPost(post, false));
+  window.addEventListener('load', function () {
+  const hobbyPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
+  hobbyPosts.forEach(post => renderPost(post, false));
 
-    const recommendationPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
-    recommendationPosts.forEach(post => renderRecommendationPost(post, false));
+  const recommendationPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
+  recommendationPosts.forEach(post => renderRecommendationPost(post, false));
 
-    const musicPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
-    musicPosts.forEach(post => renderMusicPost(post, false));
-  };
+  const musicPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
+  musicPosts.forEach(post => renderMusicPost(post, false));
+});
+
 
   // MUSIC CHANNEL
   function addMusicPost() {
