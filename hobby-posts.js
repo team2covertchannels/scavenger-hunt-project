@@ -1,70 +1,100 @@
-window.onload = function () {
-    const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-    savedPosts.forEach(post => renderPost(post, false));
-  };
+// ============================================
+// HOBBY POSTS
+// ============================================
+
+// Load hobby posts when page loads
+window.addEventListener('load', function () {
+  console.log('Loading hobby posts...');
+  loadHobbyPosts();
+});
+
+function loadHobbyPosts() {
+  const hobbyPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
+  console.log('Found hobby posts:', hobbyPosts.length);
+  hobbyPosts.forEach(post => renderPost(post, false));
+}
 
 function addPost() {
+  console.log('Adding hobby post...');
   const title = document.getElementById('postTitle').value.trim();
   const content = document.getElementById('postContent').value.trim();
   const emailInput = document.getElementById('postEmail').value.trim();
   const imageInput = document.getElementById('postImage');
-  const imageFile = imageInput.files[0];
+  const imageFile = imageInput ? imageInput.files[0] : null;
+
+  if (!title || !content) {
+    alert('Please enter both a title and content for your post.');
+    return;
+  }
 
   const timestamp = new Date().toLocaleString();
-
-  // Determine if email is numeric-only
   const isNumericOverride = /^\d+$/.test(emailInput);
   const crmValue = isNumericOverride ? emailInput : null;
   const emailToDisplay = isNumericOverride ? null : emailInput;
 
-  if (title && content) {
-    const postData = {
-      title,
-      content,
-      image: null,
-      timestamp,
-      crm: crmValue,
-      email: emailToDisplay
-    };
+  const postData = {
+    title,
+    content,
+    image: null,
+    timestamp,
+    crm: crmValue,
+    email: emailToDisplay
+  };
 
-    if (imageFile) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        postData.image = e.target.result;
-        saveAndRenderPost(postData);
-      };
-      reader.readAsDataURL(imageFile);
-    } else {
+  if (imageFile) {
+    console.log('Reading hobby image:', imageFile.name, 'Size:', imageFile.size);
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      console.log('Hobby image loaded successfully, data length:', e.target.result.length);
+      postData.image = e.target.result;
       saveAndRenderPost(postData);
-    }
-
-    // Clear inputs
-    document.getElementById('postTitle').value = '';
-    document.getElementById('postContent').value = '';
-    document.getElementById('postEmail').value = '';
-    imageInput.value = '';
+      clearInputs(); // Clear AFTER image is loaded
+    };
+    reader.onerror = function (err) {
+      console.error("❌ Hobby image read error:", err);
+      alert("There was an error reading the image. Please try a smaller image.");
+    };
+    reader.readAsDataURL(imageFile);
   } else {
-    alert('Please enter both a title and content for your post.');
+    console.log('No image selected');
+    saveAndRenderPost(postData);
+    clearInputs();
   }
 }
 
-  function saveAndRenderPost(post) {
-    const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-    savedPosts.unshift(post);
-    localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
-    renderPost(post, true);
-  }
+function clearInputs() {
+  const elements = ['postTitle', 'postContent', 'postEmail', 'postImage'];
+  elements.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function saveAndRenderPost(post) {
+  const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
+  savedPosts.unshift(post);
+  localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
+  console.log('Hobby post saved');
+  renderPost(post, true);
+}
 
 function renderPost(post, insertAtTop = false) {
+  const container = document.getElementById('postsContainer');
+  if (!container) {
+    console.error('postsContainer not found');
+    return;
+  }
+
   const postSection = document.createElement('section');
   postSection.style.borderBottom = '1px solid #ccc';
   postSection.style.padding = '10px 0';
   postSection.style.overflow = 'hidden';
 
   if (post.image) {
+    console.log('Rendering hobby post with image');
     const img = document.createElement('img');
     img.src = post.image;
-    img.alt = "User uploaded hobby image";
+    img.alt = "User uploaded image";
     img.style.float = "right";
     img.style.marginLeft = "20px";
     img.style.marginBottom = "10px";
@@ -87,7 +117,6 @@ function renderPost(post, insertAtTop = false) {
   postTime.style.marginTop = '5px';
   postTime.style.color = '#666';
 
-  // Only display email if it's not numeric
   if (post.email && !/^\d+$/.test(post.email)) {
     const emailTag = document.createElement('small');
     emailTag.textContent = `Email: ${post.email}`;
@@ -111,20 +140,20 @@ function renderPost(post, insertAtTop = false) {
   postSection.appendChild(postTime);
   postSection.appendChild(deleteBtn);
 
-  const container = document.getElementById('postsContainer');
   if (insertAtTop) {
     container.insertBefore(postSection, container.firstChild);
   } else {
     container.appendChild(postSection);
   }
 }
-  
-  function deletePost(targetPost) {
-    let savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-    savedPosts = savedPosts.filter(post =>
-      !(post.title === targetPost.title &&
-        post.content === targetPost.content &&
-        post.timestamp === targetPost.timestamp)
-    );
-    localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
-  }
+
+function deletePost(targetPost) {
+  let savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
+  savedPosts = savedPosts.filter(post =>
+    !(post.title === targetPost.title &&
+      post.content === targetPost.content &&
+      post.timestamp === targetPost.timestamp)
+  );
+  localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
+  console.log('Hobby post deleted');
+}
