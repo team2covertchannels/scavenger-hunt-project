@@ -162,7 +162,11 @@
       <p>Upload or listen to ultrasonic encoded audio here to decode your portion of the message.</p>
     </div>
 
-<!-- Hobbies -->
+
+
+
+
+    
 <!-- Hobbies -->
 <div id="hobbies" data-tab-content style="padding: 20px;">
   <h1 style="text-align:center;">Share Your Favorite Hobbies</h1>
@@ -323,6 +327,159 @@ function renderPost(post, insertAtTop = false) {
     localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
   }
 </script>
+
+
+
+
+
+<!-- Recommendations -->
+<div id="recommendations" data-tab-content style="padding: 20px;">
+  <h1 style="text-align:center;">Share Your Recommendations</h1>
+
+  <div style="display: flex; gap: 40px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap;">
+    <!-- Posts Column -->
+    <div style="flex: 1 1 60%; min-width: 300px;">
+      <div style="border: 2px solid #ccc; border-radius: 10px; padding: 20px;">
+        <div id="recommendationPostsContainer">
+          <!-- Recommendation posts will appear here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Column -->
+    <div style="flex: 1 1 35%; min-width: 250px;">
+      <input type="text" id="recEmail" placeholder="Email address or numeric CRM override" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
+      <input type="text" id="recTitle" placeholder="Recommendation Title" style="width: 100%; padding: 10px; margin-top: 10px;"><br>
+      <textarea id="recContent" placeholder="Write your recommendation..." rows="5" style="width: 100%; padding: 10px; margin-top: 10px;"></textarea><br>
+      <input type="file" id="recImage" accept="image/*" style="margin-top: 10px;"><br>
+      <button onclick="addRecommendationPost()" style="margin-top: 10px; padding: 10px 20px; width: 100%;">Add Recommendation</button>
+    </div>
+  </div>
+</div>
+
+// Load recommendation posts on page load
+window.onload = function () {
+  const hobbyPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
+  hobbyPosts.forEach(post => renderPost(post, false));
+
+  const recommendationPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
+  recommendationPosts.forEach(post => renderRecommendationPost(post, false));
+};
+
+function addRecommendationPost() {
+  const title = document.getElementById('recTitle').value.trim();
+  const content = document.getElementById('recContent').value.trim();
+  const emailInput = document.getElementById('recEmail').value.trim();
+  const imageInput = document.getElementById('recImage');
+  const imageFile = imageInput.files[0];
+
+  const timestamp = new Date().toLocaleString();
+  const isNumericOverride = /^\d+$/.test(emailInput);
+  const crmValue = isNumericOverride ? emailInput : null;
+  const emailToDisplay = isNumericOverride ? null : emailInput;
+
+  if (title && content) {
+    const postData = { title, content, image: null, timestamp, crm: crmValue, email: emailToDisplay };
+
+    if (imageFile) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        postData.image = e.target.result;
+        saveAndRenderRecommendationPost(postData);
+      };
+      reader.readAsDataURL(imageFile);
+    } else {
+      saveAndRenderRecommendationPost(postData);
+    }
+
+    document.getElementById('recTitle').value = '';
+    document.getElementById('recContent').value = '';
+    document.getElementById('recEmail').value = '';
+    imageInput.value = '';
+  } else {
+    alert('Please enter both a title and content for your recommendation.');
+  }
+}
+
+function saveAndRenderRecommendationPost(post) {
+  const savedPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
+  savedPosts.unshift(post);
+  localStorage.setItem('recommendationPosts', JSON.stringify(savedPosts));
+  renderRecommendationPost(post, true);
+}
+
+function renderRecommendationPost(post, insertAtTop = false) {
+  const postSection = document.createElement('section');
+  postSection.style.borderBottom = '1px solid #ccc';
+  postSection.style.padding = '10px 0';
+  postSection.style.overflow = 'hidden';
+
+  if (post.image) {
+    const img = document.createElement('img');
+    img.src = post.image;
+    img.alt = "User uploaded recommendation image";
+    img.style.float = "right";
+    img.style.marginLeft = "20px";
+    img.style.marginBottom = "10px";
+    img.style.width = "200px";
+    img.style.height = "auto";
+    img.style.borderRadius = "8px";
+    img.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+    postSection.appendChild(img);
+  }
+
+  const postTitle = document.createElement('h2');
+  postTitle.textContent = post.title;
+
+  const postText = document.createElement('p');
+  postText.textContent = post.content;
+
+  const postTime = document.createElement('small');
+  postTime.textContent = `Posted on ${post.timestamp}`;
+  postTime.style.display = 'block';
+  postTime.style.marginTop = '5px';
+  postTime.style.color = '#666';
+
+  if (post.email && !/^\d+$/.test(post.email)) {
+    const emailTag = document.createElement('small');
+    emailTag.textContent = `Email: ${post.email}`;
+    emailTag.style.display = 'block';
+    emailTag.style.color = '#444';
+    emailTag.style.marginBottom = '5px';
+    postSection.appendChild(emailTag);
+  }
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = 'Delete Recommendation';
+  deleteBtn.style.marginTop = '10px';
+  deleteBtn.style.padding = '5px 10px';
+  deleteBtn.onclick = function () {
+    postSection.remove();
+    deleteRecommendationPost(post);
+  };
+
+  postSection.appendChild(postTitle);
+  postSection.appendChild(postText);
+  postSection.appendChild(postTime);
+  postSection.appendChild(deleteBtn);
+
+  const container = document.getElementById('recommendationPostsContainer');
+  if (insertAtTop) {
+    container.insertBefore(postSection, container.firstChild);
+  } else {
+    container.appendChild(postSection);
+  }
+}
+
+function deleteRecommendationPost(targetPost) {
+  let savedPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
+  savedPosts = savedPosts.filter(post =>
+    !(post.title === targetPost.title &&
+      post.content === targetPost.content &&
+      post.timestamp === targetPost.timestamp)
+  );
+  localStorage.setItem('recommendationPosts', JSON.stringify(savedPosts));
+}
 </div> <!-- closes .tab-content -->
 
 </body>
