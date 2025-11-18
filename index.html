@@ -546,16 +546,12 @@ function renderPost(post, insertAtTop = false) {
     }
   }
 
-  function clearRecommendationInputs() {
-    document.getElementById('recTitle').value = '';
-    document.getElementById('recContent').value = '';
-    document.getElementById('recEmail').value = '';
-
-    const imageInput = document.getElementById('recImage');
-    imageInput.value = '';
-    imageInput.type = '';
-    imageInput.type = 'file';
-  }
+function clearRecommendationInputs() {
+  document.getElementById('recTitle').value = '';
+  document.getElementById('recContent').value = '';
+  document.getElementById('recEmail').value = '';
+  document.getElementById('recImage').value = '';  // Just clear the value
+}
 
   function saveAndRenderRecommendationPost(post) {
     const savedPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
