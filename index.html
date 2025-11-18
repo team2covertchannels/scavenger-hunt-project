@@ -170,110 +170,57 @@
 
   // MUSIC CHANNEL
   function addMusicPost() {
-    const title = document.getElementById('musicTitle').value.trim();
-    const content = document.getElementById('musicContent').value.trim();
-    const emailInput = document.getElementById('musicEmail').value.trim();
-    const imageInput = document.getElementById('musicImage');
-    const imageFile = imageInput.files[0];
+  const title = document.getElementById('musicTitle').value.trim();
+  const content = document.getElementById('musicContent').value.trim();
+  const emailInput = document.getElementById('musicEmail').value.trim();
+  const imageInput = document.getElementById('musicImage');
+  const imageFile = imageInput.files[0];
 
-    const timestamp = new Date().toLocaleString();
-    const isNumericOverride = /^\d+$/.test(emailInput);
-    const crmValue = isNumericOverride ? emailInput : null;
-    const emailToDisplay = isNumericOverride ? null : emailInput;
+  const timestamp = new Date().toLocaleString();
+  const isNumericOverride = /^\d+$/.test(emailInput);
+  const crmValue = isNumericOverride ? emailInput : null;
+  const emailToDisplay = isNumericOverride ? null : emailInput;
 
-    if (title && content) {
-      const postData = { title, content, image: null, timestamp, crm: crmValue, email: emailToDisplay };
-
-      if (imageFile) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          postData.image = e.target.result;
-          saveAndRenderMusicPost(postData);
-        };
-        reader.readAsDataURL(imageFile);
-      } else {
-        saveAndRenderMusicPost(postData);
-      }
-
-      document.getElementById('musicTitle').value = '';
-      document.getElementById('musicContent').value = '';
-      document.getElementById('musicEmail').value = '';
-      imageInput.value = '';
-    } else {
-      alert('Please enter both a title and content for your music post.');
-    }
+  if (!title || !content) {
+    alert('Please enter both a title and content for your music post.');
+    return;
   }
 
-  function saveAndRenderMusicPost(post) {
-    const savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
-    savedPosts.unshift(post);
-    localStorage.setItem('musicPosts', JSON.stringify(savedPosts));
-    renderMusicPost(post, true);
-  }
+  const postData = {
+    title,
+    content,
+    image: null,
+    timestamp,
+    crm: crmValue,
+    email: emailToDisplay
+  };
 
-  function renderMusicPost(post, insertAtTop = false) {
-    const postSection = document.createElement('section');
-    postSection.style.borderBottom = '1px solid #ccc';
-    postSection.style.padding = '10px 0';
-    postSection.style.overflow = 'hidden';
+  if (imageFile) {
+    console.log("📷 Image file selected:", imageFile.name);
+    const reader = new FileReader();
 
-    if (post.image) {
-      const img = document.createElement('img');
-      img.src = post.image;
-      img.alt = "User uploaded music image";
-      img.style.float = "right";
-      img.style.marginLeft = "20px";
-      img.style.marginBottom = "10px";
-      img.style.width = "200px";
-      img.style.height = "auto";
-      img.style.borderRadius = "8px";
-      img.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-      postSection.appendChild(img);
-    }
-
-    const postTitle = document.createElement('h2');
-    postTitle.textContent = post.title;
-
-    const postText = document.createElement('p');
-    postText.textContent = post.content;
-
-    const postTime = document.createElement('small');
-    postTime.textContent = `Posted on ${post.timestamp}`;
-    postTime.style.display = 'block';
-    postTime.style.marginTop = '5px';
-    postTime.style.color = '#666';
-
-    if (post.email && !/^\d+$/.test(post.email)) {
-      const emailTag = document.createElement('small');
-      emailTag.textContent = `Email: ${post.email}`;
-      emailTag.style.display = 'block';
-      emailTag.style.color = '#444';
-      emailTag.style.marginBottom = '5px';
-      postSection.appendChild(emailTag);
-    }
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete Music Post';
-    deleteBtn.style.marginTop = '10px';
-    deleteBtn.style.padding = '5px 10px';
-    deleteBtn.onclick = function () {
-      postSection.remove();
-      deleteMusicPost(post);
+    reader.onload = function (e) {
+      console.log("Image loaded successfully");
+      postData.image = e.target.result;
+      saveAndRenderMusicPost(postData);
     };
 
-    postSection.appendChild(postTitle);
-    postSection.appendChild(postText);
-    postSection.appendChild(postTime);
-    postSection.appendChild(deleteBtn);
+    reader.onerror = function (err) {
+      console.error("Error reading image:", err);
+      alert("There was an error loading your image.");
+    };
 
-    const container = document.getElementById('musicPostsContainer');
-    if (insertAtTop) {
-      container.insertBefore(postSection, container.firstChild);
-    } else {
-      container.appendChild(postSection);
-    }
+    reader.readAsDataURL(imageFile);
+  } else {
+    saveAndRenderMusicPost(postData);
   }
 
+  // Clear form inputs
+  document.getElementById('musicTitle').value = '';
+  document.getElementById('musicContent').value = '';
+  document.getElementById('musicEmail').value = '';
+  imageInput.value = '';
+}
   function deleteMusicPost(targetPost) {
     let savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
     savedPosts = savedPosts.filter(post =>
