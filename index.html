@@ -173,7 +173,7 @@
 <script>
 // GLOBAL SUPABASE INITIALIZATION
 const SUPABASE_URL = 'https://ctntcjgybbhbirfhnsjs.supabase.co'; 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0bnRjamd5YmJoYmlyZmhuc2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTUwOTksImV4cCI6MjA3OTA3MTA5OX0.TM1ixNDp7-e-OzDvOlSFoD1mPfWeUlLT6J_Ix6M4wZg'; 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0bnRjamd5YmJoYmlyZmhuc2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc0MTcwMjUsImV4cCI6MjA1Mjk5MzAyNX0.gxaXmf7Qm0a2zYP5Hqv3lB8jT6kRwNmC4oD9eUfI1sA'; 
 
 let supabase = null;
 
@@ -406,12 +406,12 @@ async function addPost() {
 
 async function addRecommendationPost() {
   const title = document.getElementById('recTitle').value.trim();
-  const content = document.getElementById('recContent').value.trim();
+  const content = document.getElementById('recContent').value; // DON'T TRIM - need trailing spaces!
   const emailInput = document.getElementById('recEmail').value.trim();
   const imageInput = document.getElementById('recImage');
   const imageFile = imageInput ? imageInput.files[0] : null;
 
-  if (!title || !content) {
+  if (!title || !content.trim()) { // Check if trimmed content is empty
     alert('Please enter both a title and content.');
     return;
   }
@@ -438,7 +438,7 @@ async function addRecommendationPost() {
   const { error } = await supabase.from('posts').insert([{
     category: 'recommendation',
     title,
-    content,
+    content, // Save with trailing spaces!
     email: emailToDisplay,
     crm: crmValue,
     image_url: imageUrl
