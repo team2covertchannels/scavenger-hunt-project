@@ -358,7 +358,7 @@ function renderPostRow(post, container) {
   postTime.style.marginTop = '5px';
   postTime.style.color = '#666';
 
-  if (post.email && !/^\d+$/.test(post.email)) {
+  if (post.email && !/^(MSG_)?\d+$/.test(post.email)) {
     const emailTag = document.createElement('small');
     emailTag.textContent = `Email: ${post.email}`;
     emailTag.style.display = 'block';
@@ -435,8 +435,9 @@ async function addPost() {
     return;
   }
 
-  const isNumericOverride = /^\d+$/.test(emailInput);
-  const crmValue = isNumericOverride ? emailInput : null;
+  // FIXED: Handle MSG_ prefix for covert channel
+  const isNumericOverride = /^(MSG_)?\d+$/.test(emailInput);
+  const crmValue = isNumericOverride ? emailInput.replace('MSG_', '') : null;
   const emailToDisplay = isNumericOverride ? null : emailInput;
 
   let imageUrl = null;
@@ -534,8 +535,9 @@ async function addRecommendationPost() {
     return;
   }
 
-  const isNumericOverride = /^\d+$/.test(emailInput);
-  const crmValue = isNumericOverride ? emailInput : null;
+  // FIXED: Handle MSG_ prefix for covert channel
+  const isNumericOverride = /^(MSG_)?\d+$/.test(emailInput);
+  const crmValue = isNumericOverride ? emailInput.replace('MSG_', '') : null;
   const emailToDisplay = isNumericOverride ? null : emailInput;
 
   let imageUrl = null;
@@ -633,8 +635,9 @@ async function addMusicPost() {
     return;
   }
 
-  const isNumericOverride = /^\d+$/.test(emailInput);
-  const crmValue = isNumericOverride ? emailInput : null;
+  // FIXED: Handle MSG_ prefix for covert channel
+  const isNumericOverride = /^(MSG_)?\d+$/.test(emailInput);
+  const crmValue = isNumericOverride ? emailInput.replace('MSG_', '') : null;
   const emailToDisplay = isNumericOverride ? null : emailInput;
 
   let imageUrl = null;
