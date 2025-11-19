@@ -171,13 +171,10 @@
   </div>
 
 <script>
-/* ===========================
-   Configuration - set these
-   =========================== */
+//Database stuff
 const SUPABASE_URL = 'https://ctntcjgybbhbirfhnsjs.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable__texu0e0GOtqqtkPkKO8iQ_XBAC2ljL'; 
 
-/* Safe Supabase init: only if CDN loaded */
 let supabase = null;
 try {
   if (window.supabase && typeof window.supabase.createClient === 'function') {
@@ -192,9 +189,7 @@ try {
   supabase = null;
 }
 
-/* ===========================
-   IMAGE COMPRESSION UTILITY
-   =========================== */
+//Image compression
 function compressImage(file, maxWidth = 800, quality = 0.7) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -223,9 +218,7 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
   });
 }
 
-/* ===========================
-   Attach DOM handlers on ready
-   =========================== */
+//Tab utility
 document.addEventListener('DOMContentLoaded', () => {
   // Tab switching
   const tabs = document.querySelectorAll('[data-tab-target]');
@@ -265,9 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-/* ===========================
-   Helpers: upload (uses supabase if available)
-   =========================== */
+//More database stuff
 async function uploadImageToStorage(dataUrl, category) {
   if (!supabase) {
     console.warn('Supabase not available; skipping upload.');
@@ -291,9 +282,7 @@ async function uploadImageToStorage(dataUrl, category) {
   }
 }
 
-/* ===========================
-   If supabase exists, use server loader; otherwise localStorage loaders below
-   =========================== */
+//Load from database
 async function loadPostsByCategory(category, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -421,13 +410,8 @@ function renderPostRow(post, container) {
   container.appendChild(postSection);
 }
 
-/* ===========================
-   The rest of your (localStorage) post functions remain unchanged
-   but must coexist with the server-enabled handlers above.
-   (I left them intact so local posts still work if you haven't set up Supabase)
-   =========================== */
 
-/* HOBBY POSTS localStorage handlers */
+//Hobby posts
 function loadHobbyPosts() {
   const hobbyPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
   const container = document.getElementById('postsContainer');
@@ -526,7 +510,7 @@ function deletePost(targetPost) {
   localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
 }
 
-/* RECOMMENDATION POSTS localStorage handlers */
+//Recs
 function loadRecommendationPosts() {
   const posts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
   const container = document.getElementById('recommendationPostsContainer');
@@ -625,7 +609,7 @@ function deleteRecommendationPost(targetPost) {
   localStorage.setItem('recommendationPosts', JSON.stringify(savedPosts));
 }
 
-/* MUSIC POSTS localStorage handlers */
+//Music posts
 function loadMusicPosts() {
   const posts = JSON.parse(localStorage.getItem('musicPosts')) || [];
   const container = document.getElementById('musicPostsContainer');
