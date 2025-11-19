@@ -5,7 +5,7 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Two Blog - Test</title>
+  <title>Team Two Blog</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -149,14 +149,14 @@
       <div class="creator">
         <div style="width: 150px; height: 150px; background: #ddd; border: 2px solid #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Cambria</div>
         <div>
-          <p><strong>Cambria</strong> is in her last semester at RIT, graduating with a double major in Cybersecurity and Public Policy. After graduation, she is looking to work in compliance, mainly with non-profit organizations. In her free time, she enjoys hiking, playing the piano, cooking, and crocheting.</p>
+          <p><strong>Cambria</strong> is in her last semester at RIT, graduating with a double major in Cybersecurity and Public Policy.</p>
         </div>
       </div>
       
       <div class="creator">
         <div style="width: 150px; height: 150px; background: #ddd; border: 2px solid #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Gweneth</div>
         <div>
-          <p><strong>Gweneth</strong> is in her last year at RIT. She will be graduating in May 2026 with a Bachelor's Degree in Cybersecurity. Gweneth has plans to work as a system administrator while dabbling in penetration testing. In her free time, Gweneth is usually found at a new cafe with friends trying whatever was latest recommended to her through her For You page.</p>
+          <p><strong>Gweneth</strong> is in her last year at RIT graduating with a Bachelor's Degree in Cybersecurity.</p>
         </div>
       </div>
       
@@ -171,25 +171,48 @@
   </div>
 
 <script>
-//Database stuff
+// GLOBAL SUPABASE INITIALIZATION
 const SUPABASE_URL = 'https://ctntcjgybbhbirfhnsjs.supabase.co'; 
-const SUPABASE_ANON_KEY = 'sb_publishable__texu0e0GOtqqtkPkKO8iQ_XBAC2ljL'; 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0bnRjamd5YmJoYmlyZmhuc2pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc0MTcwMjUsImV4cCI6MjA1Mjk5MzAyNX0.gxaXmf7Qm0a2zYP5Hqv3lB8jT6kRwNmC4oD9eUfI1sA'; 
 
 let supabase = null;
-try {
-  if (window.supabase && typeof window.supabase.createClient === 'function') {
-    const { createClient } = window.supabase;
-    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase initialized');
-  } else {
-    console.warn('Supabase client not available; continuing without it.');
-  }
-} catch (e) {
-  console.error('Supabase init error:', e);
-  supabase = null;
+
+// Initialize Supabase
+if (window.supabase && typeof window.supabase.createClient === 'function') {
+  const { createClient } = window.supabase;
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  console.log('✅ Supabase initialized');
+  window.supabaseClient = supabase; // Make globally accessible
+} else {
+  console.error('❌ Supabase client not available');
 }
 
-//Image compression
+// HELPER FUNCTIONS FOR PYTHON SCRIPTS
+window.getPostsByCategory = async function(category) {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('category', category)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('Error fetching posts:', error);
+    return [];
+  }
+  return data || [];
+};
+
+window.getLatestPost = async function(category) {
+  const posts = await window.getPostsByCategory(category);
+  return posts.length > 0 ? posts[0] : null;
+};
+
+window.extractShift = function(content) {
+  if (!content) return 0;
+  return content.length - content.trimEnd().length;
+};
+
+// Image compression utility
 function compressImage(file, maxWidth = 800, quality = 0.7) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -207,8 +230,7 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve(compressedDataUrl);
+        resolve(canvas.toDataURL('image/jpeg', quality));
       };
       img.onerror = reject;
       img.src = e.target.result;
@@ -218,9 +240,8 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
   });
 }
 
-//Tab utility
+// Tab switching
 document.addEventListener('DOMContentLoaded', () => {
-  // Tab switching
   const tabs = document.querySelectorAll('[data-tab-target]');
   const tabContents = document.querySelectorAll('[data-tab-content]');
 
@@ -235,95 +256,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Wire up add buttons (keep using existing named functions)
+  // Wire up buttons
   document.getElementById('addPostBtn').addEventListener('click', addPost);
   document.getElementById('addRecBtn').addEventListener('click', addRecommendationPost);
   document.getElementById('addMusicBtn').addEventListener('click', addMusicPost);
 
-  // Load posts (localStorage fallback)
-  try {
-    if (typeof loadPostsByCategory === 'function') {
-      // server-backed loader will run if supabase is initialized in that function
-      loadPostsByCategory('hobby', 'postsContainer');
-      loadPostsByCategory('recommendation', 'recommendationPostsContainer');
-      loadPostsByCategory('music', 'musicPostsContainer');
-    } else {
-      // fall back to localStorage loaders from your original code
-      if (typeof loadHobbyPosts === 'function') loadHobbyPosts();
-      if (typeof loadRecommendationPosts === 'function') loadRecommendationPosts();
-      if (typeof loadMusicPosts === 'function') loadMusicPosts();
-    }
-  } catch (err) {
-    console.error('Error loading posts on DOMContentLoaded:', err);
-  }
+  // Load posts
+  loadPostsByCategory('hobby', 'postsContainer');
+  loadPostsByCategory('recommendation', 'recommendationPostsContainer');
+  loadPostsByCategory('music', 'musicPostsContainer');
 });
 
-//More database stuff
-async function uploadImageToStorage(dataUrl, category) {
-  if (!supabase) {
-    console.warn('Supabase not available; skipping upload.');
-    return null;
-  }
-  try {
-    const blob = await (await fetch(dataUrl)).blob();
-    const filename = `${category}/${Date.now()}-${Math.random().toString(36).slice(2,9)}.jpg`;
-    const { data, error } = await supabase.storage
-      .from('post-images')
-      .upload(filename, blob, { contentType: 'image/jpeg' });
-    if (error) {
-      console.error('Upload error:', error);
-      return dataUrl; // Fallback to base64 if upload fails
-    }
-    const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(filename);
-    return urlData.publicUrl;
-  } catch (err) {
-    console.error('Image upload failed:', err);
-    return dataUrl; // Fallback to base64
-  }
-}
-
-//Load from database
+// Load posts from database
 async function loadPostsByCategory(category, containerId) {
   const container = document.getElementById(containerId);
-  if (!container) return;
-  // If supabase available, fetch from server
-  if (supabase) {
-    container.innerHTML = '<p>Loading...</p>';
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('category', category)
-      .order('created_at', { ascending: false });
-    container.innerHTML = '';
-    if (error) {
-      console.error('Load posts error:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      container.innerHTML = `<p>Failed to load posts: ${error.message || error.hint || 'Unknown error'}</p>`;
-      return;
-    }
-    if (!data || data.length === 0) {
-      container.innerHTML = '<p>No posts yet.</p>';
-      return;
-    }
-    data.forEach(post => renderPostRow(post, container));
+  if (!container || !supabase) return;
+  
+  container.innerHTML = '<p>Loading...</p>';
+  const posts = await window.getPostsByCategory(category);
+  container.innerHTML = '';
+  
+  if (posts.length === 0) {
+    container.innerHTML = '<p>No posts yet.</p>';
     return;
   }
-  // Fallback: localStorage
-  if (category === 'hobby' && typeof loadHobbyPosts === 'function') {
-    loadHobbyPosts();
-    return;
-  }
-  if (category === 'recommendation' && typeof loadRecommendationPosts === 'function') {
-    loadRecommendationPosts();
-    return;
-  }
-  if (category === 'music' && typeof loadMusicPosts === 'function') {
-    loadMusicPosts();
-    return;
-  }
+  
+  posts.forEach(post => renderPostRow(post, container));
 }
 
-/* Render rows (works for server or local post objects) */
+// Render post
 function renderPostRow(post, container) {
   const postSection = document.createElement('section');
   postSection.style.borderBottom = '1px solid #ccc';
@@ -331,10 +292,10 @@ function renderPostRow(post, container) {
   postSection.style.overflow = 'hidden';
   postSection.style.marginBottom = '15px';
 
-  if (post.image_url || post.image) {
+  if (post.image_url) {
     const img = document.createElement('img');
-    img.src = post.image_url || post.image;
-    img.alt = "User uploaded image";
+    img.src = post.image_url;
+    img.alt = "Post image";
     img.style.float = "right";
     img.style.marginLeft = "20px";
     img.style.marginBottom = "10px";
@@ -352,13 +313,12 @@ function renderPostRow(post, container) {
   postText.textContent = post.content;
 
   const postTime = document.createElement('small');
-  const ts = post.created_at || post.timestamp;
-  postTime.textContent = `Posted on ${ts ? new Date(ts).toLocaleString() : 'unknown'}`;
+  postTime.textContent = `Posted on ${new Date(post.created_at).toLocaleString()}`;
   postTime.style.display = 'block';
   postTime.style.marginTop = '5px';
   postTime.style.color = '#666';
 
-  if (post.email && !/^(MSG_)?\d+$/.test(post.email)) {
+  if (post.email) {
     const emailTag = document.createElement('small');
     emailTag.textContent = `Email: ${post.email}`;
     emailTag.style.display = 'block';
@@ -372,31 +332,10 @@ function renderPostRow(post, container) {
   deleteBtn.style.marginTop = '10px';
   deleteBtn.style.padding = '5px 10px';
   deleteBtn.onclick = async function () {
-    // if server-backed, delete from DB; otherwise trigger local delete handlers
-    if (supabase && post.id) {
-      const { error } = await supabase.from('posts').delete().eq('id', post.id);
-      if (error) {
-        console.error('Delete error', error);
-        alert('Could not delete post.');
-        return;
-      }
-      postSection.remove();
-      return;
-    }
-    // fallback: try local deletion handlers
-    if (post.timestamp && typeof deletePost === 'function') {
-      deletePost(post);
-      postSection.remove();
-      return;
-    }
-    if (post.timestamp && typeof deleteRecommendationPost === 'function') {
-      deleteRecommendationPost(post);
-      postSection.remove();
-      return;
-    }
-    if (post.timestamp && typeof deleteMusicPost === 'function') {
-      deleteMusicPost(post);
-      postSection.remove();
+    if (!supabase || !post.id) return;
+    const { error } = await supabase.from('posts').delete().eq('id', post.id);
+    if (error) {
+      alert('Could not delete post.');
       return;
     }
     postSection.remove();
@@ -410,19 +349,7 @@ function renderPostRow(post, container) {
   container.appendChild(postSection);
 }
 
-
-//Hobby posts
-function loadHobbyPosts() {
-  const hobbyPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-  const container = document.getElementById('postsContainer');
-  container.innerHTML = '';
-  if (hobbyPosts.length === 0) {
-    container.innerHTML = '<p>No posts yet.</p>';
-    return;
-  }
-  hobbyPosts.forEach(post => renderPostRow(post, container));
-}
-
+// ADD POST FUNCTIONS
 async function addPost() {
   const title = document.getElementById('postTitle').value.trim();
   const content = document.getElementById('postContent').value.trim();
@@ -431,96 +358,50 @@ async function addPost() {
   const imageFile = imageInput ? imageInput.files[0] : null;
 
   if (!title || !content) {
-    alert('Please enter both a title and content for your post.');
+    alert('Please enter both a title and content.');
     return;
   }
 
-  // FIXED: Handle MSG_ prefix for covert channel
-  const isNumericOverride = /^(MSG_)?\d+$/.test(emailInput);
-  const crmValue = isNumericOverride ? emailInput.replace('MSG_', '') : null;
-  const emailToDisplay = isNumericOverride ? null : emailInput;
+  const isNumeric = /^\d+$/.test(emailInput);
+  const crmValue = isNumeric ? emailInput : null;
+  const emailToDisplay = isNumeric ? null : emailInput;
 
   let imageUrl = null;
   if (imageFile) {
     try {
-      const compressedImage = await compressImage(imageFile);
-      if (supabase) {
-        imageUrl = await uploadImageToStorage(compressedImage, 'hobby');
-      } else {
-        imageUrl = compressedImage;
-      }
+      imageUrl = await compressImage(imageFile);
     } catch (err) {
-      console.error("Image error:", err);
-      alert("There was an error processing the image.");
+      alert("Error processing image.");
       return;
     }
   }
 
-  if (supabase) {
-    const { data, error } = await supabase.from('posts').insert([{
-      category: 'hobby',
-      title,
-      content,
-      email: emailToDisplay,
-      crm: crmValue,
-      image_url: imageUrl
-    }]).select();
-    
-    if (error) {
-      console.error('Insert error:', error);
-      alert('Failed to save post: ' + (error.message || 'Unknown error'));
-      return;
-    }
-    await loadPostsByCategory('hobby', 'postsContainer');
-  } else {
-    const postData = {
-      title,
-      content,
-      image: imageUrl,
-      timestamp: new Date().toISOString(),
-      crm: crmValue,
-      email: emailToDisplay
-    };
-    saveAndRenderPost(postData);
+  if (!supabase) {
+    alert('Database not connected');
+    return;
   }
-  clearInputs();
-}
 
-function clearInputs() {
+  const { error } = await supabase.from('posts').insert([{
+    category: 'hobby',
+    title,
+    content,
+    email: emailToDisplay,
+    crm: crmValue,
+    image_url: imageUrl
+  }]);
+  
+  if (error) {
+    console.error('Insert error:', error);
+    alert('Failed to save post');
+    return;
+  }
+
   document.getElementById('postTitle').value = '';
   document.getElementById('postContent').value = '';
   document.getElementById('postEmail').value = '';
   document.getElementById('postImage').value = '';
-}
-
-function saveAndRenderPost(post) {
-  const savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-  savedPosts.unshift(post);
-  localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
-  const container = document.getElementById('postsContainer');
-  renderPostRow(post, container);
-}
-
-function deletePost(targetPost) {
-  let savedPosts = JSON.parse(localStorage.getItem('hobbyPosts')) || [];
-  savedPosts = savedPosts.filter(post =>
-    !(post.title === targetPost.title &&
-      post.content === targetPost.content &&
-      post.timestamp === targetPost.timestamp)
-  );
-  localStorage.setItem('hobbyPosts', JSON.stringify(savedPosts));
-}
-
-//Recs
-function loadRecommendationPosts() {
-  const posts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
-  const container = document.getElementById('recommendationPostsContainer');
-  container.innerHTML = '';
-  if (posts.length === 0) {
-    container.innerHTML = '<p>No posts yet.</p>';
-    return;
-  }
-  posts.forEach(post => renderPostRow(post, container));
+  
+  await loadPostsByCategory('hobby', 'postsContainer');
 }
 
 async function addRecommendationPost() {
@@ -531,96 +412,50 @@ async function addRecommendationPost() {
   const imageFile = imageInput ? imageInput.files[0] : null;
 
   if (!title || !content) {
-    alert('Please enter both a title and content for your recommendation.');
+    alert('Please enter both a title and content.');
     return;
   }
 
-  // FIXED: Handle MSG_ prefix for covert channel
-  const isNumericOverride = /^(MSG_)?\d+$/.test(emailInput);
-  const crmValue = isNumericOverride ? emailInput.replace('MSG_', '') : null;
-  const emailToDisplay = isNumericOverride ? null : emailInput;
+  const isNumeric = /^\d+$/.test(emailInput);
+  const crmValue = isNumeric ? emailInput : null;
+  const emailToDisplay = isNumeric ? null : emailInput;
 
   let imageUrl = null;
   if (imageFile) {
     try {
-      const compressedImage = await compressImage(imageFile);
-      if (supabase) {
-        imageUrl = await uploadImageToStorage(compressedImage, 'recommendation');
-      } else {
-        imageUrl = compressedImage;
-      }
+      imageUrl = await compressImage(imageFile);
     } catch (err) {
-      console.error("Image error:", err);
-      alert("There was an error processing the image.");
+      alert("Error processing image.");
       return;
     }
   }
 
-  if (supabase) {
-    const { data, error } = await supabase.from('posts').insert([{
-      category: 'recommendation',
-      title,
-      content,
-      email: emailToDisplay,
-      crm: crmValue,
-      image_url: imageUrl
-    }]).select();
-    
-    if (error) {
-      console.error('Insert error:', error);
-      alert('Failed to save post: ' + (error.message || 'Unknown error'));
-      return;
-    }
-    await loadPostsByCategory('recommendation', 'recommendationPostsContainer');
-  } else {
-    const postData = {
-      title,
-      content,
-      image: imageUrl,
-      timestamp: new Date().toISOString(),
-      crm: crmValue,
-      email: emailToDisplay
-    };
-    saveAndRenderRecommendationPost(postData);
+  if (!supabase) {
+    alert('Database not connected');
+    return;
   }
-  clearRecommendationInputs();
-}
 
-function clearRecommendationInputs() {
+  const { error } = await supabase.from('posts').insert([{
+    category: 'recommendation',
+    title,
+    content,
+    email: emailToDisplay,
+    crm: crmValue,
+    image_url: imageUrl
+  }]);
+  
+  if (error) {
+    console.error('Insert error:', error);
+    alert('Failed to save post');
+    return;
+  }
+
   document.getElementById('recTitle').value = '';
   document.getElementById('recContent').value = '';
   document.getElementById('recEmail').value = '';
   document.getElementById('recImage').value = '';
-}
-
-function saveAndRenderRecommendationPost(post) {
-  const savedPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
-  savedPosts.unshift(post);
-  localStorage.setItem('recommendationPosts', JSON.stringify(savedPosts));
-  const container = document.getElementById('recommendationPostsContainer');
-  renderPostRow(post, container);
-}
-
-function deleteRecommendationPost(targetPost) {
-  let savedPosts = JSON.parse(localStorage.getItem('recommendationPosts')) || [];
-  savedPosts = savedPosts.filter(post =>
-    !(post.title === targetPost.title &&
-      post.content === targetPost.content &&
-      post.timestamp === targetPost.timestamp)
-  );
-  localStorage.setItem('recommendationPosts', JSON.stringify(savedPosts));
-}
-
-//Music posts
-function loadMusicPosts() {
-  const posts = JSON.parse(localStorage.getItem('musicPosts')) || [];
-  const container = document.getElementById('musicPostsContainer');
-  container.innerHTML = '';
-  if (posts.length === 0) {
-    container.innerHTML = '<p>No posts yet.</p>';
-    return;
-  }
-  posts.forEach(post => renderPostRow(post, container));
+  
+  await loadPostsByCategory('recommendation', 'recommendationPostsContainer');
 }
 
 async function addMusicPost() {
@@ -631,84 +466,50 @@ async function addMusicPost() {
   const imageFile = imageInput ? imageInput.files[0] : null;
 
   if (!title || !content) {
-    alert('Please enter both a title and content for your music post.');
+    alert('Please enter both a title and content.');
     return;
   }
 
-  // FIXED: Handle MSG_ prefix for covert channel
-  const isNumericOverride = /^(MSG_)?\d+$/.test(emailInput);
-  const crmValue = isNumericOverride ? emailInput.replace('MSG_', '') : null;
-  const emailToDisplay = isNumericOverride ? null : emailInput;
+  const isNumeric = /^\d+$/.test(emailInput);
+  const crmValue = isNumeric ? emailInput : null;
+  const emailToDisplay = isNumeric ? null : emailInput;
 
   let imageUrl = null;
   if (imageFile) {
     try {
-      const compressedImage = await compressImage(imageFile);
-      if (supabase) {
-        imageUrl = await uploadImageToStorage(compressedImage, 'music');
-      } else {
-        imageUrl = compressedImage;
-      }
+      imageUrl = await compressImage(imageFile);
     } catch (err) {
-      console.error("Image error:", err);
-      alert("There was an error processing the image.");
+      alert("Error processing image.");
       return;
     }
   }
 
-  if (supabase) {
-    const { data, error } = await supabase.from('posts').insert([{
-      category: 'music',
-      title,
-      content,
-      email: emailToDisplay,
-      crm: crmValue,
-      image_url: imageUrl
-    }]).select();
-    
-    if (error) {
-      console.error('Insert error:', error);
-      alert('Failed to save post: ' + (error.message || 'Unknown error'));
-      return;
-    }
-    await loadPostsByCategory('music', 'musicPostsContainer');
-  } else {
-    const postData = {
-      title,
-      content,
-      image: imageUrl,
-      timestamp: new Date().toISOString(),
-      crm: crmValue,
-      email: emailToDisplay
-    };
-    saveAndRenderMusicPost(postData);
+  if (!supabase) {
+    alert('Database not connected');
+    return;
   }
-  clearMusicInputs();
-}
 
-function clearMusicInputs() {
+  const { error } = await supabase.from('posts').insert([{
+    category: 'music',
+    title,
+    content,
+    email: emailToDisplay,
+    crm: crmValue,
+    image_url: imageUrl
+  }]);
+  
+  if (error) {
+    console.error('Insert error:', error);
+    alert('Failed to save post');
+    return;
+  }
+
   document.getElementById('musicTitle').value = '';
   document.getElementById('musicContent').value = '';
   document.getElementById('musicEmail').value = '';
   document.getElementById('musicImage').value = '';
-}
-
-function saveAndRenderMusicPost(post) {
-  const savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
-  savedPosts.unshift(post);
-  localStorage.setItem('musicPosts', JSON.stringify(savedPosts));
-  const container = document.getElementById('musicPostsContainer');
-  renderPostRow(post, container);
-}
-
-function deleteMusicPost(targetPost) {
-  let savedPosts = JSON.parse(localStorage.getItem('musicPosts')) || [];
-  savedPosts = savedPosts.filter(post =>
-    !(post.title === targetPost.title &&
-      post.content === targetPost.content &&
-      post.timestamp === targetPost.timestamp)
-  );
-  localStorage.setItem('musicPosts', JSON.stringify(savedPosts));
+  
+  await loadPostsByCategory('music', 'musicPostsContainer');
 }
 </script>
 
