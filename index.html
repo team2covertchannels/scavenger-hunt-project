@@ -1,13 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://unpkg.com/@supabase/supabase-js/dist/supabase.min.js"></script>
-  <script>
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log('Supabase initialized');
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -66,9 +60,6 @@
       border-radius: 8px;
     }
   </style>
-
-  <!-- Supabase client (optional) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
 </head>
 <body>
   <header>
@@ -190,7 +181,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable__texu0e0GOtqqtkPkKO8iQ_XBAC2ljL';
 let supabase = null;
 try {
   if (window.supabase && typeof window.supabase.createClient === 'function') {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { createClient } = window.supabase;
+    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('Supabase initialized');
   } else {
     console.warn('Supabase client not available; continuing without it.');
@@ -281,17 +273,22 @@ async function uploadImageToStorage(dataUrl, category) {
     console.warn('Supabase not available; skipping upload.');
     return null;
   }
-  const blob = await (await fetch(dataUrl)).blob();
-  const filename = `${category}/${Date.now()}-${Math.random().toString(36).slice(2,9)}.jpg`;
-  const { data, error } = await supabase.storage
-    .from('post-images')
-    .upload(filename, blob, { contentType: 'image/jpeg' });
-  if (error) {
-    console.error('Upload error', error);
-    return null;
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const filename = `${category}/${Date.now()}-${Math.random().toString(36).slice(2,9)}.jpg`;
+    const { data, error } = await supabase.storage
+      .from('post-images')
+      .upload(filename, blob, { contentType: 'image/jpeg' });
+    if (error) {
+      console.error('Upload error:', error);
+      return dataUrl; // Fallback to base64 if upload fails
+    }
+    const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(filename);
+    return urlData.publicUrl;
+  } catch (err) {
+    console.error('Image upload failed:', err);
+    return dataUrl; // Fallback to base64
   }
-  const { publicURL } = supabase.storage.from('post-images').getPublicUrl(filename);
-  return publicURL;
 }
 
 /* ===========================
@@ -310,8 +307,9 @@ async function loadPostsByCategory(category, containerId) {
       .order('created_at', { ascending: false });
     container.innerHTML = '';
     if (error) {
-      console.error('Load posts error', error);
-      container.innerHTML = '<p>Failed to load posts.</p>';
+      console.error('Load posts error:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      container.innerHTML = `<p>Failed to load posts: ${error.message || error.hint || 'Unknown error'}</p>`;
       return;
     }
     if (!data || data.length === 0) {
@@ -441,7 +439,7 @@ function loadHobbyPosts() {
   hobbyPosts.forEach(post => renderPostRow(post, container));
 }
 
-function addPost() {
+async function addPost() {
   const title = document.getElementById('postTitle').value.trim();
   const content = document.getElementById('postContent').value.trim();
   const emailInput = document.getElementById('postEmail').value.trim();
@@ -453,35 +451,54 @@ function addPost() {
     return;
   }
 
-  const timestamp = new Date().toISOString();
   const isNumericOverride = /^\d+$/.test(emailInput);
   const crmValue = isNumericOverride ? emailInput : null;
   const emailToDisplay = isNumericOverride ? null : emailInput;
 
-  const postData = {
-    title,
-    content,
-    image: null,
-    timestamp,
-    crm: crmValue,
-    email: emailToDisplay
-  };
-
+  let imageUrl = null;
   if (imageFile) {
-    compressImage(imageFile)
-      .then(compressedImage => {
-        postData.image = compressedImage;
-        saveAndRenderPost(postData);
-        clearInputs();
-      })
-      .catch(err => {
-        console.error("Image compression error:", err);
-        alert("There was an error processing the image.");
-      });
-  } else {
-    saveAndRenderPost(postData);
-    clearInputs();
+    try {
+      const compressedImage = await compressImage(imageFile);
+      if (supabase) {
+        imageUrl = await uploadImageToStorage(compressedImage, 'hobby');
+      } else {
+        imageUrl = compressedImage;
+      }
+    } catch (err) {
+      console.error("Image error:", err);
+      alert("There was an error processing the image.");
+      return;
+    }
   }
+
+  if (supabase) {
+    const { data, error } = await supabase.from('posts').insert([{
+      category: 'hobby',
+      title,
+      content,
+      email: emailToDisplay,
+      crm: crmValue,
+      image_url: imageUrl
+    }]).select();
+    
+    if (error) {
+      console.error('Insert error:', error);
+      alert('Failed to save post: ' + (error.message || 'Unknown error'));
+      return;
+    }
+    await loadPostsByCategory('hobby', 'postsContainer');
+  } else {
+    const postData = {
+      title,
+      content,
+      image: imageUrl,
+      timestamp: new Date().toISOString(),
+      crm: crmValue,
+      email: emailToDisplay
+    };
+    saveAndRenderPost(postData);
+  }
+  clearInputs();
 }
 
 function clearInputs() {
@@ -521,7 +538,7 @@ function loadRecommendationPosts() {
   posts.forEach(post => renderPostRow(post, container));
 }
 
-function addRecommendationPost() {
+async function addRecommendationPost() {
   const title = document.getElementById('recTitle').value.trim();
   const content = document.getElementById('recContent').value.trim();
   const emailInput = document.getElementById('recEmail').value.trim();
@@ -533,35 +550,54 @@ function addRecommendationPost() {
     return;
   }
 
-  const timestamp = new Date().toISOString();
   const isNumericOverride = /^\d+$/.test(emailInput);
   const crmValue = isNumericOverride ? emailInput : null;
   const emailToDisplay = isNumericOverride ? null : emailInput;
 
-  const postData = {
-    title,
-    content,
-    image: null,
-    timestamp,
-    crm: crmValue,
-    email: emailToDisplay
-  };
-
+  let imageUrl = null;
   if (imageFile) {
-    compressImage(imageFile)
-      .then(compressedImage => {
-        postData.image = compressedImage;
-        saveAndRenderRecommendationPost(postData);
-        clearRecommendationInputs();
-      })
-      .catch(err => {
-        console.error("Recommendation image error:", err);
-        alert("There was an error processing the image.");
-      });
-  } else {
-    saveAndRenderRecommendationPost(postData);
-    clearRecommendationInputs();
+    try {
+      const compressedImage = await compressImage(imageFile);
+      if (supabase) {
+        imageUrl = await uploadImageToStorage(compressedImage, 'recommendation');
+      } else {
+        imageUrl = compressedImage;
+      }
+    } catch (err) {
+      console.error("Image error:", err);
+      alert("There was an error processing the image.");
+      return;
+    }
   }
+
+  if (supabase) {
+    const { data, error } = await supabase.from('posts').insert([{
+      category: 'recommendation',
+      title,
+      content,
+      email: emailToDisplay,
+      crm: crmValue,
+      image_url: imageUrl
+    }]).select();
+    
+    if (error) {
+      console.error('Insert error:', error);
+      alert('Failed to save post: ' + (error.message || 'Unknown error'));
+      return;
+    }
+    await loadPostsByCategory('recommendation', 'recommendationPostsContainer');
+  } else {
+    const postData = {
+      title,
+      content,
+      image: imageUrl,
+      timestamp: new Date().toISOString(),
+      crm: crmValue,
+      email: emailToDisplay
+    };
+    saveAndRenderRecommendationPost(postData);
+  }
+  clearRecommendationInputs();
 }
 
 function clearRecommendationInputs() {
@@ -601,7 +637,7 @@ function loadMusicPosts() {
   posts.forEach(post => renderPostRow(post, container));
 }
 
-function addMusicPost() {
+async function addMusicPost() {
   const title = document.getElementById('musicTitle').value.trim();
   const content = document.getElementById('musicContent').value.trim();
   const emailInput = document.getElementById('musicEmail').value.trim();
@@ -613,35 +649,54 @@ function addMusicPost() {
     return;
   }
 
-  const timestamp = new Date().toISOString();
   const isNumericOverride = /^\d+$/.test(emailInput);
   const crmValue = isNumericOverride ? emailInput : null;
   const emailToDisplay = isNumericOverride ? null : emailInput;
 
-  const postData = {
-    title,
-    content,
-    image: null,
-    timestamp,
-    crm: crmValue,
-    email: emailToDisplay
-  };
-
+  let imageUrl = null;
   if (imageFile) {
-    compressImage(imageFile)
-      .then(compressedImage => {
-        postData.image = compressedImage;
-        saveAndRenderMusicPost(postData);
-        clearMusicInputs();
-      })
-      .catch(err => {
-        console.error("Music image error:", err);
-        alert("There was an error processing the image.");
-      });
-  } else {
-    saveAndRenderMusicPost(postData);
-    clearMusicInputs();
+    try {
+      const compressedImage = await compressImage(imageFile);
+      if (supabase) {
+        imageUrl = await uploadImageToStorage(compressedImage, 'music');
+      } else {
+        imageUrl = compressedImage;
+      }
+    } catch (err) {
+      console.error("Image error:", err);
+      alert("There was an error processing the image.");
+      return;
+    }
   }
+
+  if (supabase) {
+    const { data, error } = await supabase.from('posts').insert([{
+      category: 'music',
+      title,
+      content,
+      email: emailToDisplay,
+      crm: crmValue,
+      image_url: imageUrl
+    }]).select();
+    
+    if (error) {
+      console.error('Insert error:', error);
+      alert('Failed to save post: ' + (error.message || 'Unknown error'));
+      return;
+    }
+    await loadPostsByCategory('music', 'musicPostsContainer');
+  } else {
+    const postData = {
+      title,
+      content,
+      image: imageUrl,
+      timestamp: new Date().toISOString(),
+      crm: crmValue,
+      email: emailToDisplay
+    };
+    saveAndRenderMusicPost(postData);
+  }
+  clearMusicInputs();
 }
 
 function clearMusicInputs() {
